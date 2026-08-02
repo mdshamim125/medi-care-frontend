@@ -1,56 +1,46 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
 import { loginUser } from "@/services/auth/loginUser";
-import { ArrowRight, Lock, Mail } from "lucide-react";
-import Link from "next/link";
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 
-const LoginForm = () => {
+const LoginForm = ({ redirect }: { redirect?: string }) => {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginUser, null);
+
+  useEffect(() => {
+    if (state?.success && state.redirectTo) {
+      router.push(state.redirectTo);
+    }
+  }, [router, state]);
 
   const getFieldError = (fieldName: string) => {
     if (state && state.errors) {
       const error = state.errors.find((err: any) => err.field === fieldName);
-      return error?.message ?? null;
+      return error.message;
+    } else {
+      return null;
     }
-
-    return null;
   };
 
   return (
     <form action={formAction} className="space-y-5">
-      <div className="space-y-2 text-center sm:text-left">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Sign in
-        </h2>
-        <p className="text-sm text-slate-600">
-          Use your email and password to continue securely.
-        </p>
-      </div>
-
+      {redirect && <input type="hidden" name="redirect" value={redirect} />}
       <FieldGroup>
         <div className="grid grid-cols-1 gap-4">
           <Field>
-            <FieldLabel
-              htmlFor="email"
-              className="text-sm font-medium text-slate-700"
-            >
-              Email address
-            </FieldLabel>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
+            <FieldLabel htmlFor="email">Email address</FieldLabel>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="name@example.com"
+              className="h-11 rounded-xl border-slate-200 bg-slate-50 px-4 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+            />
+
             {getFieldError("email") && (
               <FieldDescription className="text-sm text-red-600">
                 {getFieldError("email")}
@@ -59,22 +49,14 @@ const LoginForm = () => {
           </Field>
 
           <Field>
-            <FieldLabel
-              htmlFor="password"
-              className="text-sm font-medium text-slate-700"
-            >
-              Password
-            </FieldLabel>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Enter your password"
+              className="h-11 rounded-xl border-slate-200 bg-slate-50 px-4 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+            />
             {getFieldError("password") && (
               <FieldDescription className="text-sm text-red-600">
                 {getFieldError("password")}
@@ -83,39 +65,33 @@ const LoginForm = () => {
           </Field>
         </div>
 
-        <FieldGroup>
-          <Field>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="h-11 w-full rounded-xl bg-teal-600 text-white shadow-lg shadow-teal-600/20 transition hover:bg-teal-700"
-            >
-              {isPending ? (
-                "Signing in..."
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
-            </Button>
+        <div className="space-y-3 pt-2">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="h-11 w-full rounded-xl bg-teal-600 text-white shadow-sm transition hover:bg-teal-700"
+          >
+            {isPending ? "Signing in..." : "Sign in"}
+          </Button>
 
-            <div className="flex flex-col gap-2 text-center text-sm text-slate-600 sm:flex-row sm:justify-between sm:text-left">
-              <Link
+          <div className="flex flex-col items-center gap-1 text-sm text-slate-600">
+            <p>
+              Don&apos;t have an account?{" "}
+              <a
                 href="/register"
-                className="font-medium text-teal-700 hover:text-teal-800 hover:underline"
+                className="font-medium text-teal-700 hover:underline"
               >
-                Create an account
-              </Link>
-              <Link
-                href="/forget-password"
-                className="font-medium hover:text-slate-900 hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-          </Field>
-        </FieldGroup>
+                Create one
+              </a>
+            </p>
+            <a
+              href="/forget-password"
+              className="font-medium text-slate-700 hover:text-teal-700 hover:underline"
+            >
+              Forgot password?
+            </a>
+          </div>
+        </div>
       </FieldGroup>
     </form>
   );
