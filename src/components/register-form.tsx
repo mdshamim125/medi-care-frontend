@@ -2,12 +2,11 @@
 "use client";
 
 import { registerPatient } from "@/services/auth/registerPatient";
-import { ArrowRight, Lock, Mail, MapPin, UserRound } from "lucide-react";
-import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
+import { toast } from "sonner";
 
 const RegisterForm = () => {
   const [state, formAction, isPending] = useActionState(registerPatient, null);
@@ -15,166 +14,146 @@ const RegisterForm = () => {
   const getFieldError = (fieldName: string) => {
     if (state && state.errors) {
       const error = state.errors.find((err: any) => err.field === fieldName);
-      return error?.message ?? null;
+      if (error) {
+        return error.message;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
     }
-
-    return null;
   };
 
+  useEffect(() => {
+    if (state && !state.success && state.message) {
+      toast.error(state.message);
+    }
+  }, [state]);
+
   return (
-    <form action={formAction} className="space-y-5">
-      <FieldGroup>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Field>
-            <FieldLabel
-              htmlFor="name"
-              className="text-sm font-medium text-slate-700"
-            >
-              Full name
-            </FieldLabel>
-            <div className="relative">
-              <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="John Doe"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
-            {getFieldError("name") && (
-              <FieldDescription className="text-sm text-red-600">
-                {getFieldError("name")}
-              </FieldDescription>
-            )}
-          </Field>
+    <form
+      action={formAction}
+      className="space-y-8 rounded-4xl border border-slate-200/80 bg-white/95 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.18)] sm:p-8"
+    >
+      <div className="space-y-2">
+        <p className="text-sm uppercase tracking-[0.24em] text-teal-700">
+          New patient registration
+        </p>
+        <h2 className="text-2xl font-semibold text-slate-900">
+          Create your MediCare account
+        </h2>
+        <p className="text-sm text-slate-500">
+          Register to book appointments, access your medical records, and
+          connect with providers securely.
+        </p>
+      </div>
 
-          <Field>
-            <FieldLabel
-              htmlFor="address"
-              className="text-sm font-medium text-slate-700"
-            >
-              Address
-            </FieldLabel>
-            <div className="relative">
-              <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="address"
-                name="address"
-                type="text"
-                placeholder="123 Main St"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
-            {getFieldError("address") && (
-              <FieldDescription className="text-sm text-red-600">
-                {getFieldError("address")}
-              </FieldDescription>
-            )}
-          </Field>
-
-          <Field>
-            <FieldLabel
-              htmlFor="email"
-              className="text-sm font-medium text-slate-700"
-            >
-              Email address
-            </FieldLabel>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
-            {getFieldError("email") && (
-              <FieldDescription className="text-sm text-red-600">
-                {getFieldError("email")}
-              </FieldDescription>
-            )}
-          </Field>
-
-          <Field>
-            <FieldLabel
-              htmlFor="password"
-              className="text-sm font-medium text-slate-700"
-            >
-              Password
-            </FieldLabel>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Create a strong password"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
-            {getFieldError("password") && (
-              <FieldDescription className="text-sm text-red-600">
-                {getFieldError("password")}
-              </FieldDescription>
-            )}
-          </Field>
-
-          <Field className="md:col-span-2">
-            <FieldLabel
-              htmlFor="confirmPassword"
-              className="text-sm font-medium text-slate-700"
-            >
-              Confirm password
-            </FieldLabel>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="Re-enter your password"
-                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 shadow-sm focus-visible:border-teal-500 focus-visible:ring-teal-500/20"
-              />
-            </div>
-            {getFieldError("confirmPassword") && (
-              <FieldDescription className="text-sm text-red-600">
-                {getFieldError("confirmPassword")}
-              </FieldDescription>
-            )}
-          </Field>
-        </div>
-
-        <FieldGroup>
-          <Field>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="h-11 w-full rounded-xl bg-teal-600 text-white shadow-lg shadow-teal-600/20 transition hover:bg-teal-700"
-            >
-              {isPending ? (
-                "Creating account..."
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  Create account
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
-            </Button>
-
-            <FieldDescription className="text-center text-sm text-slate-600">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-medium text-teal-700 hover:text-teal-800 hover:underline"
-              >
-                Sign in
-              </Link>
+      <FieldGroup className="grid gap-4 md:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor="name">Full name</FieldLabel>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="John Doe"
+            className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+          />
+          {getFieldError("name") && (
+            <FieldDescription className="text-sm text-red-600">
+              {getFieldError("name")}
             </FieldDescription>
-          </Field>
-        </FieldGroup>
+          )}
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="address">Address</FieldLabel>
+          <Input
+            id="address"
+            name="address"
+            type="text"
+            placeholder="123 Main St"
+            className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+          />
+          {getFieldError("address") && (
+            <FieldDescription className="text-sm text-red-600">
+              {getFieldError("address")}
+            </FieldDescription>
+          )}
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="email">Email address</FieldLabel>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+          />
+          {getFieldError("email") && (
+            <FieldDescription className="text-sm text-red-600">
+              {getFieldError("email")}
+            </FieldDescription>
+          )}
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Create a password"
+            className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+          />
+          {getFieldError("password") && (
+            <FieldDescription className="text-sm text-red-600">
+              {getFieldError("password")}
+            </FieldDescription>
+          )}
+        </Field>
+
+        <Field className="md:col-span-2">
+          <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm your password"
+            className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+          />
+          {getFieldError("confirmPassword") && (
+            <FieldDescription className="text-sm text-red-600">
+              {getFieldError("confirmPassword")}
+            </FieldDescription>
+          )}
+        </Field>
       </FieldGroup>
+
+      <div className="space-y-4 pt-3">
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="h-12 w-full rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-600/20 transition hover:bg-teal-700 focus-visible:ring-2 focus-visible:ring-teal-500/50"
+        >
+          {isPending ? "Creating account..." : "Create account"}
+        </Button>
+
+        <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Already have an account?{" "}
+            <a
+              href="/login"
+              className="font-medium text-teal-700 hover:underline"
+            >
+              Sign in
+            </a>
+          </span>
+          <span className="text-slate-500">
+            By registering, you agree to our privacy policy.
+          </span>
+        </div>
+      </div>
     </form>
   );
 };
