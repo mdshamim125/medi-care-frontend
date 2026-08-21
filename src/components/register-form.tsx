@@ -1,28 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { registerPatient } from "@/services/auth/registerPatient";
 import { useActionState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "./ui/field";
+import { Field, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
+import InputFieldError from "./shared/InputFieldError";
 
 const RegisterForm = () => {
   const [state, formAction, isPending] = useActionState(registerPatient, null);
-
-  const getFieldError = (fieldName: string) => {
-    if (state && state.errors) {
-      const error = state.errors.find((err: any) => err.field === fieldName);
-      if (error) {
-        return error.message;
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  };
 
   useEffect(() => {
     if (state && !state.success && state.message) {
@@ -58,11 +45,7 @@ const RegisterForm = () => {
             placeholder="John Doe"
             className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
           />
-          {getFieldError("name") && (
-            <FieldDescription className="text-sm text-red-600">
-              {getFieldError("name")}
-            </FieldDescription>
-          )}
+          <InputFieldError field="name" state={state} />
         </Field>
 
         <Field>
@@ -74,11 +57,7 @@ const RegisterForm = () => {
             placeholder="123 Main St"
             className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
           />
-          {getFieldError("address") && (
-            <FieldDescription className="text-sm text-red-600">
-              {getFieldError("address")}
-            </FieldDescription>
-          )}
+          <InputFieldError field="address" state={state} />
         </Field>
 
         <Field>
@@ -90,11 +69,7 @@ const RegisterForm = () => {
             placeholder="name@example.com"
             className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
           />
-          {getFieldError("email") && (
-            <FieldDescription className="text-sm text-red-600">
-              {getFieldError("email")}
-            </FieldDescription>
-          )}
+          <InputFieldError field="email" state={state} />
         </Field>
 
         <Field>
@@ -106,11 +81,7 @@ const RegisterForm = () => {
             placeholder="Create a password"
             className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
           />
-          {getFieldError("password") && (
-            <FieldDescription className="text-sm text-red-600">
-              {getFieldError("password")}
-            </FieldDescription>
-          )}
+          <InputFieldError field="password" state={state} />
         </Field>
 
         <Field className="md:col-span-2">
@@ -122,11 +93,7 @@ const RegisterForm = () => {
             placeholder="Confirm your password"
             className="h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm transition focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
           />
-          {getFieldError("confirmPassword") && (
-            <FieldDescription className="text-sm text-red-600">
-              {getFieldError("confirmPassword")}
-            </FieldDescription>
-          )}
+          <InputFieldError field="confirmPassword" state={state} />
         </Field>
       </FieldGroup>
 
