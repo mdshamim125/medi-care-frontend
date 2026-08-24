@@ -4,9 +4,9 @@ import ManagementPageHeader from "@/components/shared/ManagementPageHeader";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import SpecialitiesFormDialog from "./SpecialitiesFormDialog";
+import ScheduleFormDialog from "./ScheduleFormDialog";
 
-const SpecialitiesManagementHeader = () => {
+const SchedulesManagementHeader = () => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -17,6 +17,7 @@ const SpecialitiesManagementHeader = () => {
     });
   };
 
+  //force remount to reset state of form
   const [dialogKey, setDialogKey] = useState(0);
 
   const handleOpenDialog = () => {
@@ -27,9 +28,10 @@ const SpecialitiesManagementHeader = () => {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
   };
+
   return (
     <>
-      <SpecialitiesFormDialog
+      <ScheduleFormDialog
         key={dialogKey}
         open={isDialogOpen}
         onClose={handleCloseDialog}
@@ -37,10 +39,10 @@ const SpecialitiesManagementHeader = () => {
       />
 
       <ManagementPageHeader
-        title="Specialties Management"
-        description="Manage Specialties information and details"
+        title="Schedules Management"
+        description="Create and manage appointment schedules"
         action={{
-          label: "Add Specialty",
+          label: "Create Schedule",
           icon: Plus,
           onClick: handleOpenDialog,
         }}
@@ -49,4 +51,4 @@ const SpecialitiesManagementHeader = () => {
   );
 };
 
-export default SpecialitiesManagementHeader;
+export default SchedulesManagementHeader;
