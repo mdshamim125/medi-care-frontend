@@ -104,9 +104,7 @@ export async function createDoctor(_prevState: any, formData: FormData) {
 
 export async function getDoctors(queryString?: string) {
   try {
-    const response = await serverFetch.get(
-      `/doctor${queryString ? `?${queryString}` : ""}`,
-    );
+    const response = await serverFetch.get(`/doctor${queryString || ""}`);
     const result = await response.json();
     return result;
   } catch (error: any) {

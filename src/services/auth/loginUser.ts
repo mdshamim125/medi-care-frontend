@@ -43,7 +43,18 @@ export const loginUser = async (
       },
     });
 
-    const result = await res.json();
+    const responseText = await res.text();
+    const contentType = res.headers.get("content-type") || "";
+    const result = contentType.includes("application/json")
+      ? JSON.parse(responseText)
+      : { success: false, message: responseText };
+
+    if (!res.ok || !result.success) {
+      return {
+        success: false,
+        message: result.message || "Login failed",
+      };
+    }
 
     const setCookieHeaders = res.headers.getSetCookie();
 
@@ -96,10 +107,6 @@ export const loginUser = async (
     }
 
     const userRole: UserRole = verifiedToken.role;
-
-    if (!result.success) {
-      throw new Error(result.message || "Login failed");
-    }
 
     if (redirectTo) {
       const requestedPath = redirectTo.toString();

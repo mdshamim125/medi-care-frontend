@@ -60,6 +60,18 @@ const DoctorFilters = ({ specialties }: DoctorsFilterProps) => {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
+    const currentGender = searchParams.get("gender") || "";
+    const currentEmail = searchParams.get("email") || "";
+    const currentContactNumber = searchParams.get("contactNumber") || "";
+
+    const filtersChanged =
+      debouncedGender !== currentGender ||
+      debouncedEmail !== currentEmail ||
+      debouncedContactNumber !== currentContactNumber;
+
+    if (!filtersChanged) {
+      return;
+    }
 
     // Update debounced fields
     if (debouncedGender) {

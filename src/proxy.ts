@@ -16,12 +16,21 @@ export async function proxy(request: NextRequest) {
 
     let userRole: UserRole | null = null;
     if (accessToken) {
-        const verifiedToken: JwtPayload | string = jwt.verify(accessToken, process.env.JWT_SECRET as string);
+        let verifiedToken: JwtPayload | string;
+        try {
+            verifiedToken = jwt.verify(accessToken, process.env.JWT_SECRET as string);
+        } catch {
+            const response = NextResponse.redirect(new URL('/login', request.url));
+            response.cookies.delete('accessToken');
+            response.cookies.delete('refreshToken');
+            return response;
+        }
 
         if (typeof verifiedToken === "string") {
-            await deleteCookie("accessToken");
-            await deleteCookie("refreshToken");
-            return NextResponse.redirect(new URL('/login', request.url));
+            const response = NextResponse.redirect(new URL('/login', request.url));
+            response.cookies.delete('accessToken');
+            response.cookies.delete('refreshToken');
+            return response;
         }
 
         userRole = verifiedToken.role;
