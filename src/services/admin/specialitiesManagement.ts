@@ -43,9 +43,9 @@ export async function createSpeciality(_prevState: any, formData: FormData) {
   }
 }
 
-export async function getSpecialities() {
+export async function getSpecialities(queryString?: string) {
   try {
-    const response = await serverFetch.get("/specialties");
+    const response = await serverFetch.get(`/specialties${queryString || ""}`);
     const result = await response.json();
     return result;
   } catch (error: any) {

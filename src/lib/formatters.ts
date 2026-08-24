@@ -35,5 +35,5 @@ export function queryStringFormatter(searchParamsObj: {
     return "";
   });
   queryString = queryArray.filter((q) => q !== "").join("&"); // searchTerm=John&speciality=Cardiology&speciality=Neurology
-  return queryString;
+  return queryString ? `?${queryString}` : "";
 }

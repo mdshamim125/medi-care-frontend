@@ -11,12 +11,18 @@ export const specialitiesColumns: Column<ISpecialty>[] = [
         alt={speciality.title}
         width={40}
         height={40}
-        className="rounded-full"
+        className="h-10 w-10 rounded-xl object-cover ring-1 ring-slate-200"
       />
     ),
+    className: "w-[84px]",
   },
   {
     header: "Title",
-    accessor: (speciality) => speciality.title,
+    accessor: (speciality) => (
+      <div className="py-1">
+        <p className="font-semibold text-slate-900">{speciality.title}</p>
+        <p className="mt-0.5 text-xs text-slate-500">Medical specialty</p>
+      </div>
+    ),
   },
 ];
