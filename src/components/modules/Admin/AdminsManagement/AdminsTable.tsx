@@ -14,9 +14,14 @@ import { softDeleteAdmin } from "@/services/admin/adminsManagement";
 interface AdminsTableProps {
   admins: IAdmin[];
   currentUserEmail?: string;
+  currentUserRole?: "SUPER_ADMIN" | "ADMIN";
 }
 
-const AdminsTable = ({ admins, currentUserEmail }: AdminsTableProps) => {
+const AdminsTable = ({
+  admins,
+  currentUserEmail,
+  currentUserRole,
+}: AdminsTableProps) => {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [deletingAdmin, setDeletingAdmin] = useState<IAdmin | null>(null);
@@ -66,7 +71,9 @@ const AdminsTable = ({ admins, currentUserEmail }: AdminsTableProps) => {
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        canDelete={(admin) => admin.email !== currentUserEmail}
+        canDelete={(admin) =>
+          currentUserRole === "SUPER_ADMIN" && admin.email !== currentUserEmail
+        }
         getRowKey={(admin) => admin.id!}
         emptyMessage="No admins found"
       />

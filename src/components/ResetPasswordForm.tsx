@@ -24,13 +24,18 @@ const ResetPasswordForm = ({ redirect }: { redirect?: string }) => {
   }, [state]);
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="space-y-1">
       {redirect && <Input type="hidden" name="redirect" value={redirect} />}
       <FieldGroup>
         <div className="grid grid-cols-1 gap-4">
           {/* New Password */}
           <Field>
-            <FieldLabel htmlFor="newPassword">New Password</FieldLabel>
+            <FieldLabel
+              htmlFor="newPassword"
+              className="text-sm font-semibold text-slate-700"
+            >
+              New password
+            </FieldLabel>
             <Input
               id="newPassword"
               name="newPassword"
@@ -43,7 +48,12 @@ const ResetPasswordForm = ({ redirect }: { redirect?: string }) => {
 
           {/* Confirm Password */}
           <Field>
-            <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
+            <FieldLabel
+              htmlFor="confirmPassword"
+              className="text-sm font-semibold text-slate-700"
+            >
+              Confirm password
+            </FieldLabel>
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -55,13 +65,17 @@ const ResetPasswordForm = ({ redirect }: { redirect?: string }) => {
           </Field>
         </div>
 
-        <FieldGroup className="mt-4">
+        <FieldGroup className="mt-6">
           <Field>
-            <Button type="submit" disabled={isPending} className="w-full">
-              {isPending ? "Resetting..." : "Reset Password"}
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="h-11 w-full font-semibold"
+            >
+              {isPending ? "Saving password..." : "Save new password"}
             </Button>
 
-            <FieldDescription className="px-6 text-center mt-4">
+            <FieldDescription className="mt-4 px-2 text-center">
               Remember your password?{" "}
               <a href="/login" className="text-blue-600 hover:underline">
                 Back to Login
