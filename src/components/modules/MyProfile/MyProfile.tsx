@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { getInitials } from "@/lib/formatters";
 import { updateMyProfile } from "@/services/auth/auth.service";
 import { UserInfo } from "@/types/user.interface";
-import { Camera, Loader2, Save } from "lucide-react";
+import { Camera, CheckCircle2, Loader2, Save, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -23,7 +23,7 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const getProfilePhoto = () => {
-    if (userInfo.role === "ADMIN") {
+    if (userInfo.role === "ADMIN" || userInfo.role === "SUPER_ADMIN") {
       return userInfo.admin?.profilePhoto;
     } else if (userInfo.role === "DOCTOR") {
       return userInfo.doctor?.profilePhoto;
@@ -34,7 +34,7 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
   };
 
   const getProfileData = () => {
-    if (userInfo.role === "ADMIN") {
+    if (userInfo.role === "ADMIN" || userInfo.role === "SUPER_ADMIN") {
       return userInfo.admin;
     } else if (userInfo.role === "DOCTOR") {
       return userInfo.doctor;
@@ -79,25 +79,38 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold">My Profile</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your personal information
-        </p>
-      </div>
+    <div className="space-y-7">
+      <section className="relative overflow-hidden rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-6 sm:px-7">
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">
+              Account center
+            </p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+              My Profile
+            </h1>
+            <p className="mt-1.5 text-sm text-teal-900/70">
+              Keep your personal and professional information up to date.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start rounded-full border border-teal-100 bg-white/80 px-3 py-2 text-xs font-semibold text-teal-800 sm:self-center">
+            <ShieldCheck className="h-4 w-4" />
+            {userInfo.role.replace("_", " ")}
+          </div>
+        </div>
+        <div className="absolute -right-12 -top-16 h-40 w-40 rounded-full border-[18px] border-white/40" />
+      </section>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
           {/* Profile Card */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Profile Picture</CardTitle>
+          <Card className="overflow-hidden border-slate-200/80 shadow-sm lg:col-span-1">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/60 pb-4">
+              <CardTitle className="text-base">Profile identity</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col items-center space-y-4">
+            <CardContent className="flex flex-col items-center space-y-5 pt-6">
               <div className="relative">
-                <Avatar className="h-32 w-32">
+                <Avatar className="h-32 w-32 ring-4 ring-teal-50 ring-offset-2">
                   {previewImage || profilePhoto ? (
                     <AvatarImage
                       src={previewImage || (profilePhoto as string)}
@@ -127,23 +140,29 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
               </div>
 
               <div className="text-center">
-                <p className="font-semibold text-lg">{userInfo.name}</p>
+                <p className="text-lg font-bold text-slate-900">
+                  {userInfo.name}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {userInfo.email}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1 capitalize">
-                  {userInfo.role.replace("_", " ")}
-                </p>
+                <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Profile active
+                </span>
               </div>
             </CardContent>
           </Card>
 
           {/* Profile Information Card */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
+          <Card className="border-slate-200/80 shadow-sm lg:col-span-2">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/60 pb-4">
+              <CardTitle className="text-base">Personal information</CardTitle>
+              <p className="text-sm text-slate-500">
+                Update the details shown across your MediCare account.
+              </p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5 pt-6">
               {error && (
                 <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
                   {error}
@@ -156,7 +175,7 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
                 </div>
               )}
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-x-5 gap-y-4 md:grid-cols-2">
                 {/* Common Fields for All Roles */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
@@ -305,7 +324,7 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
                 )}
               </div>
 
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end border-t border-slate-100 pt-5">
                 <Button type="submit" disabled={isPending}>
                   {isPending ? (
                     <>

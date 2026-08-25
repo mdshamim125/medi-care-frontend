@@ -95,12 +95,27 @@ export async function proxy(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Rule 5 : User is trying to access role based protected route
-    if (routerOwner === "ADMIN" || routerOwner === "DOCTOR" || routerOwner === "PATIENT") {
-        if (userRole !== routerOwner) {
-            return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole as UserRole), request.url))
-        }
-    }
+   // Rule 5: Role-based protected routes
+if (
+  routerOwner === "ADMIN" ||
+  routerOwner === "DOCTOR" ||
+  routerOwner === "PATIENT"
+) {
+  // SUPER_ADMIN has all ADMIN permissions
+    if (userRole === "SUPER_ADMIN" && routerOwner === "ADMIN") {
+    return NextResponse.next();
+  }
+
+  // Normal role-based authorization
+  if (userRole !== routerOwner) {
+    return NextResponse.redirect(
+      new URL(
+        getDefaultDashboardRoute(userRole as UserRole),
+        request.url
+      )
+    );
+  }
+}
 
     return NextResponse.next();
 }
