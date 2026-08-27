@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "DOCTOR" | "PATIENT";
+export type UserRole = "SUPER_ADMIN" | "ADMIN" | "DOCTOR" | "PATIENT";
 
 // exact : ["/my-profile", "settings"]
 //   patterns: [/^\/dashboard/, /^\/patient/], // Routes starting with /dashboard/* /patient/*
@@ -7,15 +7,10 @@ export type RouteConfig = {
   patterns: RegExp[];
 };
 
-export const authRoutes = [
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-];
+export const authRoutes = ["/login", "/register", "/forgot-password"];
 
 export const commonProtectedRoutes: RouteConfig = {
-  exact: ["/my-profile", "/settings", "/change-password"],
+  exact: ["/my-profile", "/settings", "/change-password", "/reset-password"],
   patterns: [], // [/password/change-password, /password/reset-password => /password/*]
 };
 
@@ -51,14 +46,15 @@ export const isRouteMatches = (
 
 export const getRouteOwner = (
   pathname: string,
-): "ADMIN" | "DOCTOR" | "PATIENT" | "COMMON" | null => {
+): "SUPER_ADMIN" | "ADMIN" | "DOCTOR" | "PATIENT" | "COMMON" | null => {
   if (isRouteMatches(pathname, adminProtectedRoutes)) {
     return "ADMIN";
   }
+  
   if (isRouteMatches(pathname, doctorProtectedRoutes)) {
     return "DOCTOR";
   }
-  if (isRouteMatches(pathname, patientProtectedRoutes)) {
+  if (isRouteMatches(pathname, patientProtectedRoutes)) { 
     return "PATIENT";
   }
   if (isRouteMatches(pathname, commonProtectedRoutes)) {
@@ -68,15 +64,18 @@ export const getRouteOwner = (
 };
 
 export const getDefaultDashboardRoute = (role: UserRole): string => {
-  if (role === "ADMIN") {
+  if (role === "SUPER_ADMIN" || role === "ADMIN") {
     return "/admin/dashboard";
   }
+
   if (role === "DOCTOR") {
     return "/doctor/dashboard";
   }
+
   if (role === "PATIENT") {
     return "/dashboard";
   }
+
   return "/";
 };
 
@@ -90,7 +89,7 @@ export const isValidRedirectForRole = (
     return true;
   }
 
-  if (routeOwner === role) {
+  if (routeOwner === role || (role === "SUPER_ADMIN" && routeOwner === "ADMIN")) {
     return true;
   }
 

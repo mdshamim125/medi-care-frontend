@@ -40,6 +40,7 @@ interface ManagementTableProps<T> {
   onView?: (row: T) => void;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  canDelete?: (row: T) => boolean;
   getRowKey: (row: T) => string;
   emptyMessage?: string;
   isRefreshing?: boolean;
@@ -55,6 +56,7 @@ function ManagementTable<T>({
   onView,
   onEdit,
   onDelete,
+  canDelete,
   getRowKey,
   emptyMessage = "No records found.",
   isRefreshing = false,
@@ -178,7 +180,7 @@ function ManagementTable<T>({
                               Edit
                             </DropdownMenuItem>
                           )}
-                          {onDelete && (
+                          {onDelete && (!canDelete || canDelete(item)) && (
                             <DropdownMenuItem
                               onClick={() => onDelete(item)}
                               className="text-destructive"
