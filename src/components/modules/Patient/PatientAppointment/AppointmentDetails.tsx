@@ -164,7 +164,7 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                     <div className="flex flex-wrap gap-2">
                       {appointment.doctor.doctorSpecialties.map((ds, idx) => (
                         <Badge key={idx} variant="secondary">
-                          {ds.specialties?.title || "N/A"}
+                          {ds.specialities?.title || "N/A"}
                         </Badge>
                       ))}
                     </div>
@@ -271,13 +271,13 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                     <p className="text-xl font-bold text-blue-900">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "EEEE"
+                        "EEEE",
                       )}
                     </p>
                     <p className="text-blue-700">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "MMMM d, yyyy"
+                        "MMMM d, yyyy",
                       )}
                     </p>
                   </div>
@@ -291,12 +291,12 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                       <p className="font-semibold text-blue-900">
                         {format(
                           new Date(appointment.schedule.startDateTime),
-                          "h:mm a"
+                          "h:mm a",
                         )}{" "}
                         -{" "}
                         {format(
                           new Date(appointment.schedule.endDateTime),
-                          "h:mm a"
+                          "h:mm a",
                         )}
                       </p>
                     </div>
@@ -334,7 +334,7 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                       <p className="text-sm text-green-700">
                         {format(
                           new Date(appointment.prescription.followUpDate),
-                          "MMMM d, yyyy"
+                          "MMMM d, yyyy",
                         )}
                       </p>
                     </div>
