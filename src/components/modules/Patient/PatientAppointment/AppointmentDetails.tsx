@@ -1,13 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  AppointmentStatus,
+  IAppointment,
+} from "@/types/appointments.interface";
 import { format } from "date-fns";
 import {
   AlertCircle,
+  ArrowLeft,
   Calendar,
   CheckCircle2,
   Clock,
@@ -15,20 +24,40 @@ import {
   Phone,
   Star,
   Stethoscope,
-  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-// import ReviewDialog from "./ReviewDialog";
-import {
-  AppointmentStatus,
-  IAppointment,
-} from "@/types/appointments.interface";
 import ReviewDialog from "./ReviewDialog";
 
 interface AppointmentDetailProps {
   appointment: IAppointment;
 }
+
+const statusConfig: Record<
+  AppointmentStatus,
+  { label: string; className: string }
+> = {
+  [AppointmentStatus.SCHEDULED]: {
+    label: "Scheduled",
+    className:
+      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  },
+  [AppointmentStatus.INPROGRESS]: {
+    label: "In Progress",
+    className:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  },
+  [AppointmentStatus.COMPLETED]: {
+    label: "Completed",
+    className:
+      "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300",
+  },
+  [AppointmentStatus.CANCELED]: {
+    label: "Canceled",
+    className:
+      "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
+  },
+};
 
 const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
   const router = useRouter();
@@ -36,131 +65,103 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
 
   const isCompleted = appointment.status === AppointmentStatus.COMPLETED;
   const canReview = isCompleted && !appointment.review;
+  const status = statusConfig[appointment.status];
 
-  const getStatusBadge = (status: AppointmentStatus) => {
-    const statusConfig: Record<
-      AppointmentStatus,
-      { variant: any; label: string; className?: string }
-    > = {
-      [AppointmentStatus.SCHEDULED]: {
-        variant: "default",
-        label: "Scheduled",
-        className: "bg-blue-500 hover:bg-blue-600",
-      },
-      [AppointmentStatus.INPROGRESS]: {
-        variant: "secondary",
-        label: "In Progress",
-      },
-      [AppointmentStatus.COMPLETED]: {
-        variant: "default",
-        label: "Completed",
-        className: "bg-green-500 hover:bg-green-600",
-      },
-      [AppointmentStatus.CANCELED]: {
-        variant: "destructive",
-        label: "Canceled",
-      },
-    };
-
-    const config = statusConfig[status];
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        {config.label}
-      </Badge>
-    );
-  };
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="mx-auto max-w-5xl space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             Appointment Details
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="mt-1.5 text-muted-foreground">
             Complete information about your appointment
           </p>
         </div>
-        <Button variant="outline" onClick={() => router.back()}>
+        <Button
+          variant="outline"
+          className="w-fit gap-2"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
       </div>
 
-      {/* Review Notification - Only show if can review (completed but no review) */}
+      {/* Review prompts */}
       {canReview && (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-amber-900">
-                  Review This Appointment
-                </h3>
-                <p className="text-sm text-amber-700 mt-1">
-                  Your appointment has been completed. Share your experience by
-                  leaving a review for Dr. {appointment.doctor?.name}.
-                </p>
-                <Button
-                  onClick={() => setShowReviewDialog(true)}
-                  className="mt-3"
-                  size="sm"
-                >
-                  Write a Review
-                </Button>
-              </div>
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40">
+          <CardContent className="flex items-start gap-4 pt-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-900 dark:text-amber-100">
+                Review this appointment
+              </h3>
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                Your appointment has been completed. Share your experience with
+                Dr. {appointment.doctor?.name}.
+              </p>
+              <Button
+                size="sm"
+                className="mt-4"
+                onClick={() => setShowReviewDialog(true)}
+              >
+                Write a Review
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Cannot Review Yet - Only show if not completed and no review */}
       {!isCompleted && !appointment.review && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-blue-900">
-                  Review Not Available Yet
-                </h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  You can review this appointment after it has been completed.
-                </p>
-              </div>
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40">
+          <CardContent className="flex items-start gap-4 pt-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                Review not available yet
+              </h3>
+              <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                You can leave a review after this appointment is completed.
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Doctor Information */}
-        <Card>
+      {/* Main two-column layout */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Left: Doctor Information */}
+        <Card className="self-start lg:col-span-3">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Stethoscope className="h-5 w-5 text-primary" />
               Doctor Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div>
-              <p className="text-2xl font-semibold">
-                {appointment.doctor?.name || "N/A"}
+              <p className="text-2xl font-semibold tracking-tight">
+                {appointment.doctor?.name || "Unknown Doctor"}
               </p>
-              <p className="text-muted-foreground">
+              <p className="mt-1 text-muted-foreground">
                 {appointment.doctor?.designation || "Doctor"}
               </p>
             </div>
 
-            <Separator />
-
             {appointment.doctor?.doctorSpecialties &&
               appointment.doctor.doctorSpecialties.length > 0 && (
                 <>
+                  <Separator />
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Specialties</span>
-                    </div>
+                    <p className="mb-2.5 text-sm font-medium text-muted-foreground">
+                      Specialties
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {appointment.doctor.doctorSpecialties.map((ds, idx) => (
                         <Badge key={idx} variant="secondary">
@@ -169,176 +170,136 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                       ))}
                     </div>
                   </div>
-                  <Separator />
                 </>
               )}
 
-            <div className="space-y-2">
-              {appointment.doctor?.qualification && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Qualification:</span>
-                  <span className="font-medium">
-                    {appointment.doctor.qualification}
-                  </span>
-                </div>
-              )}
-
-              {appointment.doctor?.experience !== undefined && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Experience:</span>
-                  <span className="font-medium">
-                    {appointment.doctor.experience} years
-                  </span>
-                </div>
-              )}
-
-              {appointment.doctor?.currentWorkingPlace && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Working at:</span>
-                  <span className="font-medium">
-                    {appointment.doctor.currentWorkingPlace}
-                  </span>
-                </div>
-              )}
-            </div>
-
             <Separator />
 
-            <div className="space-y-2">
-              {appointment.doctor?.contactNumber && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{appointment.doctor.contactNumber}</span>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {appointment.doctor?.qualification && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Qualification</p>
+                  <p className="mt-0.5 font-medium">
+                    {appointment.doctor.qualification}
+                  </p>
                 </div>
               )}
-
-              {appointment.doctor?.address && (
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <span>{appointment.doctor.address}</span>
+              {appointment.doctor?.experience !== undefined && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Experience</p>
+                  <p className="mt-0.5 font-medium">
+                    {appointment.doctor.experience} years
+                  </p>
+                </div>
+              )}
+              {appointment.doctor?.currentWorkingPlace && (
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-muted-foreground">Working at</p>
+                  <p className="mt-0.5 font-medium">
+                    {appointment.doctor.currentWorkingPlace}
+                  </p>
                 </div>
               )}
             </div>
+
+            {(appointment.doctor?.contactNumber ||
+              appointment.doctor?.address) && (
+              <>
+                <Separator />
+                <div className="space-y-2.5">
+                  {appointment.doctor?.contactNumber && (
+                    <div className="flex items-center gap-2.5 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{appointment.doctor.contactNumber}</span>
+                    </div>
+                  )}
+                  {appointment.doctor?.address && (
+                    <div className="flex items-start gap-2.5 text-sm">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span>{appointment.doctor.address}</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {appointment.doctor?.appointmentFee !== undefined && (
               <>
                 <Separator />
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-blue-900">
-                      Consultation Fee
-                    </span>
-                    <span className="text-xl font-bold text-blue-600">
-                      ${appointment.doctor.appointmentFee}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+                  <span className="text-sm font-medium">Consultation Fee</span>
+                  <span className="text-xl font-bold text-primary">
+                    ${appointment.doctor.appointmentFee}
+                  </span>
                 </div>
               </>
             )}
           </CardContent>
         </Card>
 
-        {/* Appointment Details */}
-        <div className="space-y-6 lg:col-span-1">
-          {/* Status */}
+        {/* Right: Status + Schedule */}
+        <div className="space-y-6 self-start lg:col-span-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Appointment Status</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Current Status
+                  Current status
                 </span>
-                {getStatusBadge(appointment.status)}
+                <Badge variant="outline" className={status.className}>
+                  {status.label}
+                </Badge>
               </div>
             </CardContent>
           </Card>
 
-          {/* Schedule */}
           {appointment.schedule && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="h-4 w-4" />
                   Schedule
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-linear-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <div className="space-y-4 rounded-lg bg-muted/60 p-4">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Date</p>
-                    <p className="text-xl font-bold text-blue-900">
+                    <p className="text-xs text-muted-foreground">Date</p>
+                    <p className="mt-1 text-lg font-semibold">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "EEEE",
+                        "EEEE"
                       )}
                     </p>
-                    <p className="text-blue-700">
+                    <p className="text-sm text-muted-foreground">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "MMMM d, yyyy",
+                        "MMMM d, yyyy"
                       )}
                     </p>
                   </div>
 
-                  <Separator className="bg-blue-200" />
+                  <Separator />
 
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-blue-600" />
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Time</p>
-                      <p className="font-semibold text-blue-900">
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="font-medium">
                         {format(
                           new Date(appointment.schedule.startDateTime),
-                          "h:mm a",
+                          "h:mm a"
                         )}{" "}
-                        -{" "}
+                        –{" "}
                         {format(
                           new Date(appointment.schedule.endDateTime),
-                          "h:mm a",
+                          "h:mm a"
                         )}
                       </p>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Prescription */}
-          {appointment.prescription && (
-            <Card className="border-green-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-700">
-                  <CheckCircle2 className="h-5 w-5" />
-                  Prescription Available
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="bg-green-50 rounded-lg p-3 space-y-2">
-                  <div>
-                    <span className="text-sm font-medium text-green-900">
-                      Instructions:
-                    </span>
-                    <p className="text-sm text-green-700 mt-1">
-                      {appointment.prescription.instructions}
-                    </p>
-                  </div>
-
-                  {appointment.prescription.followUpDate && (
-                    <div>
-                      <span className="text-sm font-medium text-green-900">
-                        Follow-up Date:
-                      </span>
-                      <p className="text-sm text-green-700">
-                        {format(
-                          new Date(appointment.prescription.followUpDate),
-                          "MMMM d, yyyy",
-                        )}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -346,45 +307,118 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
         </div>
       </div>
 
-      {/* Review Section - Full Width Below */}
+      {/* Prescription – full width */}
+      {appointment.prescription && (
+        <Card className="border-green-200 dark:border-green-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base text-green-700 dark:text-green-400">
+              <CheckCircle2 className="h-4 w-4" />
+              Prescription
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-5">
+            {/* Medicines */}
+            <div>
+              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Medicines
+              </p>
+              <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
+                  <p className="text-sm font-medium">Paracetamol 500 mg</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    1 tablet after meals, 2–3 times daily if fever occurs
+                  </p>
+                </li>
+                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
+                  <p className="text-sm font-medium">Cetirizine 10 mg</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    1 tablet at night for 5 days
+                  </p>
+                </li>
+                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
+                  <p className="text-sm font-medium">Saline Nasal Spray</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    2 sprays in each nostril, 3 times daily
+                  </p>
+                </li>
+              </ul>
+            </div>
+
+            {/* Advice */}
+            <div>
+              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Advice
+              </p>
+              <div className="rounded-lg border bg-muted/40 px-3.5 py-2.5 text-sm leading-relaxed text-muted-foreground">
+                <ul className="list-disc space-y-1 pl-4">
+                  <li>Drink plenty of water and take adequate rest</li>
+                  <li>Avoid cold drinks and dusty environments</li>
+                  <li>Follow up if symptoms worsen or do not improve</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Follow-up Date */}
+            {appointment.prescription.followUpDate && (
+              <div className="flex items-center justify-between rounded-lg border border-green-100 bg-green-50/60 px-4 py-3 dark:border-green-900 dark:bg-green-950/30">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Follow-up Date
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold">
+                    {format(
+                      new Date(appointment.prescription.followUpDate),
+                      "MMMM d, yyyy"
+                    )}
+                  </p>
+                </div>
+                <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Review Section */}
       {appointment.review && (
-        <Card className="border-yellow-200">
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-700">
-              <Star className="h-5 w-5 fill-yellow-600" />
+            <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <Star className="h-5 w-5 fill-current" />
               Your Review
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-yellow-50 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-1">
+            <div className="space-y-4 rounded-lg bg-amber-50 p-5 dark:bg-amber-950/40">
+              <div className="flex items-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
                     className={`h-5 w-5 ${
                       star <= appointment.review!.rating
-                        ? "fill-yellow-500 text-yellow-500"
-                        : "text-gray-300"
+                        ? "fill-amber-500 text-amber-500"
+                        : "text-muted-foreground/30"
                     }`}
                   />
                 ))}
-                <span className="ml-2 text-sm font-medium text-yellow-900">
+                <span className="ml-2 text-sm font-semibold text-amber-900 dark:text-amber-100">
                   {appointment.review.rating}/5
                 </span>
               </div>
 
               {appointment.review.comment && (
                 <div>
-                  <p className="text-sm text-yellow-900 font-medium mb-1">
-                    Comment:
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                    Comment
                   </p>
-                  <p className="text-sm text-yellow-800">
+                  <p className="mt-1 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
                     {appointment.review.comment}
                   </p>
                 </div>
               )}
 
-              <p className="text-xs text-yellow-600 italic">
+              <p className="text-xs italic text-amber-600/80 dark:text-amber-400/70">
                 Reviews cannot be edited or deleted once submitted.
               </p>
             </div>

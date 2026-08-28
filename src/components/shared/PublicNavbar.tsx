@@ -1,6 +1,8 @@
 import { getCookie } from "@/services/auth/tokenHandlers";
-import { Menu } from "lucide-react";
+import { getUserInfo } from "@/services/auth/getUserInfo";
+import { Activity, Menu } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "../ui/button";
 import {
@@ -11,80 +13,73 @@ import {
 } from "../ui/sheet";
 
 import LogoutButton from "./LogoutButton";
-
-// Replace this with your actual user-info service
-import { getUserInfo } from "@/services/auth/getUserInfo";
 import UserDropdown from "../modules/Dashboard/UserDropdown";
+import PublicNavLinks from "./PublicNavLinks";
 
 const PublicNavbar = async () => {
   const navItems = [
     { href: "/consultation", label: "Consultation" },
-    { href: "#", label: "Health Plans" },
-    { href: "#", label: "Medicine" },
+    { href: "#", label: "About Us" },
+    { href: "#", label: "Contact Us" },
     { href: "#", label: "Diagnostics" },
     { href: "#", label: "NGOs" },
   ];
 
   const accessToken = await getCookie("accessToken");
-
-  // Fetch authenticated user information
   const userInfo = accessToken ? await getUserInfo() : null;
 
+  const getProfilePhoto = () => {
+    if (!userInfo) return null;
+    if (userInfo.role === "ADMIN" || userInfo.role === "SUPER_ADMIN") {
+      return userInfo.admin?.profilePhoto ?? null;
+    }
+    if (userInfo.role === "DOCTOR") {
+      return userInfo.doctor?.profilePhoto ?? null;
+    }
+    if (userInfo.role === "PATIENT") {
+      return userInfo.patient?.profilePhoto ?? null;
+    }
+    return null;
+  };
+
+  const profilePhoto = getProfilePhoto();
+  const initials = userInfo?.name?.charAt(0).toUpperCase() || "U";
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/75">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* =====================================================
-            LOGO
-        ====================================================== */}
+        {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 transition-opacity hover:opacity-80"
+          className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-            M
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+            <Activity className="h-4 w-4" />
           </div>
-
-          <span className="text-xl font-bold tracking-tight text-primary">
-            MediCare
+          <span className="text-lg font-semibold tracking-tight text-foreground">
+            Medi-Care
           </span>
         </Link>
 
-        {/* =====================================================
-            DESKTOP NAVIGATION
-        ====================================================== */}
-        <nav className="hidden items-center gap-7 md:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              {item.label}
-            </Link>
-          ))}
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center gap-1 md:flex">
+          <PublicNavLinks items={navItems} />
         </nav>
 
-        {/* =====================================================
-            DESKTOP ACCOUNT AREA
-        ====================================================== */}
-        <div className="hidden items-center md:flex">
+        {/* Desktop Account */}
+        <div className="hidden items-center gap-3 md:flex">
           {userInfo ? (
             <UserDropdown userInfo={userInfo} />
           ) : (
             <Link href="/login">
-              <Button
-                size="sm"
-                className="rounded-lg px-5 font-semibold shadow-sm"
-              >
+              <Button size="sm" className="rounded-lg px-5 font-medium shadow-sm">
                 Login
               </Button>
             </Link>
           )}
         </div>
 
-        {/* =====================================================
-            MOBILE MENU
-        ====================================================== */}
+        {/* Mobile Menu */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
@@ -98,106 +93,90 @@ const PublicNavbar = async () => {
               </Button>
             </SheetTrigger>
 
-            <SheetContent
-              side="right"
-              className="w-[300px] p-0 sm:w-[380px]"
-            >
-              {/* Accessibility title */}
-              <SheetTitle className="sr-only">
-                Navigation Menu
-              </SheetTitle>
+            <SheetContent side="right" className="w-[300px] p-0 sm:w-[340px]">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
 
               <div className="flex h-full flex-col">
-                {/* -------------------------------------------------
-                    MOBILE HEADER
-                -------------------------------------------------- */}
+                {/* Mobile Header */}
                 <div className="flex h-16 items-center border-b px-5">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-                      M
+                  <Link href="/" className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+                      <Activity className="h-4 w-4" />
                     </div>
-
-                    <span className="text-lg font-bold text-primary">
-                      MediCare
+                    <span className="text-lg font-semibold tracking-tight">
+                      Medi-Care
                     </span>
                   </Link>
                 </div>
 
-                {/* -------------------------------------------------
-                    MOBILE NAVIGATION
-                -------------------------------------------------- */}
-                <nav className="flex-1 space-y-1 px-4 py-6">
-                  <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {/* Mobile Navigation */}
+                <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+                  <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
                     Navigation
                   </p>
 
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="flex items-center rounded-lg px-3 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-primary"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                  <PublicNavLinks items={navItems} mobile />
                 </nav>
 
-                {/* -------------------------------------------------
-                    MOBILE ACCOUNT
-                -------------------------------------------------- */}
-                <div className="border-t bg-muted/20 p-4">
+                {/* Mobile Account */}
+                <div className="border-t bg-muted/30 p-4">
                   {userInfo ? (
                     <div className="space-y-3">
-                      {/* User information */}
-                      <div className="flex items-center gap-3 rounded-xl border bg-background p-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                          {userInfo.name.charAt(0).toUpperCase()}
+                      <div className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm">
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/60">
+                          {profilePhoto ? (
+                            <Image
+                              src={profilePhoto}
+                              alt={userInfo.name}
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-primary text-sm font-semibold text-primary-foreground">
+                              {initials}
+                            </div>
+                          )}
                         </div>
 
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold leading-tight">
                             {userInfo.name}
                           </p>
-
-                          <p className="truncate text-xs text-muted-foreground">
+                          <p className="truncate text-xs text-muted-foreground mt-0.5">
                             {userInfo.email}
                           </p>
-
-                          <p className="mt-0.5 text-xs font-medium capitalize text-primary">
-                            {userInfo.role.toLowerCase()}
+                          <p className="mt-0.5 text-[11px] font-medium capitalize text-primary">
+                            {userInfo.role.toLowerCase().replace("_", " ")}
                           </p>
                         </div>
                       </div>
 
-                      {/* Profile */}
-                      <Link href="/my-profile">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start rounded-lg"
-                        >
-                          My Profile
-                        </Button>
-                      </Link>
+                      <div className="grid gap-2">
+                        <Link href="/my-profile">
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start rounded-lg"
+                          >
+                            My Profile
+                          </Button>
+                        </Link>
 
-                      {/* Change password */}
-                      <Link href="/change-password">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start rounded-lg"
-                        >
-                          Change Password
-                        </Button>
-                      </Link>
+                        <Link href="/change-password">
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start rounded-lg"
+                          >
+                            Change Password
+                          </Button>
+                        </Link>
 
-                      {/* Logout */}
-                      <LogoutButton />
+                        <LogoutButton />
+                      </div>
                     </div>
                   ) : (
                     <Link href="/login" className="block">
-                      <Button className="w-full rounded-lg font-semibold">
+                      <Button className="w-full rounded-lg font-medium">
                         Login
                       </Button>
                     </Link>
@@ -213,4 +192,3 @@ const PublicNavbar = async () => {
 };
 
 export default PublicNavbar;
-

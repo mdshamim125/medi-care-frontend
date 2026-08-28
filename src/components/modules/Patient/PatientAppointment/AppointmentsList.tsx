@@ -1,9 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import {
   AppointmentStatus,
   IAppointment,
@@ -17,7 +21,6 @@ import {
   MessageSquare,
   Star,
   Stethoscope,
-  User,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,193 +28,205 @@ interface AppointmentsListProps {
   appointments: IAppointment[];
 }
 
+const statusConfig: Record<
+  AppointmentStatus,
+  { label: string; className: string }
+> = {
+  [AppointmentStatus.SCHEDULED]: {
+    label: "Scheduled",
+    className:
+      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  },
+  [AppointmentStatus.INPROGRESS]: {
+    label: "In Progress",
+    className:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  },
+  [AppointmentStatus.COMPLETED]: {
+    label: "Completed",
+    className:
+      "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300",
+  },
+  [AppointmentStatus.CANCELED]: {
+    label: "Canceled",
+    className:
+      "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
+  },
+};
+
 const AppointmentsList = ({ appointments }: AppointmentsListProps) => {
-  const getStatusBadge = (status: AppointmentStatus) => {
-    const statusConfig: Record<
-      AppointmentStatus,
-      { variant: any; label: string; className?: string }
-    > = {
-      [AppointmentStatus.SCHEDULED]: {
-        variant: "default",
-        label: "Scheduled",
-        className: "bg-blue-500 hover:bg-blue-600",
-      },
-      [AppointmentStatus.INPROGRESS]: {
-        variant: "secondary",
-        label: "In Progress",
-      },
-      [AppointmentStatus.COMPLETED]: {
-        variant: "default",
-        label: "Completed",
-        className: "bg-green-500 hover:bg-green-600",
-      },
-      [AppointmentStatus.CANCELED]: {
-        variant: "destructive",
-        label: "Canceled",
-      },
-    };
-
-    const config = statusConfig[status];
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        {config.label}
-      </Badge>
-    );
-  };
-
   if (appointments.length === 0) {
     return (
       <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Appointments Yet</h3>
-          <p className="text-muted-foreground text-center max-w-sm">
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <Calendar className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold">No appointments yet</h3>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
             You haven&apos;t booked any appointments. Browse our doctors and
-            book your first consultation.
+            schedule your first consultation.
           </p>
-          <Button className="mt-4" asChild>
-            <a href="/consultation">Find a Doctor</a>
+          <Button className="mt-6" asChild>
+            <Link href="/consultation">Find a Doctor</Link>
           </Button>
         </CardContent>
       </Card>
     );
   }
+
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {appointments.map((appointment) => (
-        <Card
-          key={appointment.id}
-          className="hover:shadow-lg transition-shadow"
-        >
-          <CardContent className="pt-6 space-y-4">
-            {/* Status and Review Badge */}
-            <div className="flex justify-between items-start gap-2 flex-wrap">
-              {getStatusBadge(appointment.status)}
-              <div className="flex gap-2 flex-wrap">
+    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      {appointments.map((appointment) => {
+        const status = statusConfig[appointment.status];
+
+        return (
+          <Card
+            key={appointment.id}
+            className="flex flex-col overflow-hidden transition-all hover:shadow-md"
+          >
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <Stethoscope className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-semibold leading-tight">
+                      {appointment.doctor?.name || "Unknown Doctor"}
+                    </h3>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                      {appointment.doctor?.designation || "Doctor"}
+                    </p>
+                  </div>
+                </div>
+
+                <Badge
+                  variant="outline"
+                  className={`shrink-0 ${status.className}`}
+                >
+                  {status.label}
+                </Badge>
+              </div>
+            </CardHeader>
+
+            <CardContent className="flex-1 space-y-4 pt-0">
+              {/* Specialties */}
+              {appointment.doctor?.doctorSpecialties &&
+                appointment.doctor.doctorSpecialties.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {appointment.doctor.doctorSpecialties
+                      .slice(0, 3)
+                      .map((ds, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="text-xs font-normal"
+                        >
+                          {ds.specialities?.title || "N/A"}
+                        </Badge>
+                      ))}
+                    {appointment.doctor.doctorSpecialties.length > 3 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs font-normal"
+                      >
+                        +{appointment.doctor.doctorSpecialties.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+              {/* Schedule */}
+              {appointment.schedule && (
+                <div className="space-y-2.5 rounded-lg bg-muted/60 px-3 py-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="font-medium">
+                      {format(
+                        new Date(appointment.schedule.startDateTime),
+                        "EEE, MMM d, yyyy"
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span>
+                      {format(
+                        new Date(appointment.schedule.startDateTime),
+                        "h:mm a"
+                      )}{" "}
+                      –{" "}
+                      {format(
+                        new Date(appointment.schedule.endDateTime),
+                        "h:mm a"
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Address */}
+              {appointment.doctor?.address && (
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="line-clamp-2">
+                    {appointment.doctor.address}
+                  </span>
+                </div>
+              )}
+
+              {/* Extra badges / review */}
+              <div className="flex flex-wrap gap-2">
                 {appointment.prescription && (
                   <Badge
                     variant="outline"
-                    className="bg-green-50 text-green-700"
+                    className="gap-1 border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300"
                   >
-                    <FileText className="h-3 w-3 mr-1" />
+                    <FileText className="h-3 w-3" />
                     Prescription
                   </Badge>
                 )}
+
                 {appointment.status === AppointmentStatus.COMPLETED &&
                   !appointment.review && (
                     <Badge
                       variant="outline"
-                      className="bg-amber-50 text-amber-700 border-amber-300 animate-pulse"
+                      className="gap-1 border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
                     >
-                      <MessageSquare className="h-3 w-3 mr-1" />
-                      Can Review
+                      <MessageSquare className="h-3 w-3" />
+                      Review Available
                     </Badge>
                   )}
               </div>
-            </div>
 
-            {/* Doctor Info */}
-            <div>
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 rounded-full p-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">
-                    {appointment.doctor?.name || "N/A"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {appointment.doctor?.designation || "Doctor"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Specialties */}
-            {appointment.doctor?.doctorSpecialties &&
-              appointment.doctor.doctorSpecialties.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                  {appointment.doctor.doctorSpecialties
-                    .slice(0, 2)
-                    .map((ds, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {ds.specialities?.title || "N/A"}
-                      </Badge>
-                    ))}
-                  {appointment.doctor.doctorSpecialties.length > 2 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{appointment.doctor.doctorSpecialties.length - 2} more
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-            {/* Schedule */}
-            {appointment.schedule && (
-              <div className="space-y-2 bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">
-                    {format(
-                      new Date(appointment.schedule.startDateTime),
-                      "EEEE, MMM d, yyyy",
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {format(
-                      new Date(appointment.schedule.startDateTime),
-                      "h:mm a",
-                    )}{" "}
-                    -{" "}
-                    {format(
-                      new Date(appointment.schedule.endDateTime),
-                      "h:mm a",
-                    )}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Address */}
-            {appointment.doctor?.address && (
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <span className="line-clamp-2">
-                  {appointment.doctor.address}
-                </span>
-              </div>
-            )}
-
-            {/* Review Status */}
-            {appointment.status === AppointmentStatus.COMPLETED && (
-              <div>
-                {appointment.review ? (
-                  <div className="flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 rounded-lg p-2">
-                    <Star className="h-4 w-4 fill-yellow-600" />
-                    <span>Rated {appointment.review.rating}/5</span>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted-foreground bg-gray-50 rounded-lg p-2">
-                    No review yet
+              {/* Review rating */}
+              {appointment.status === AppointmentStatus.COMPLETED &&
+                appointment.review && (
+                  <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                    <Star className="h-4 w-4 fill-current" />
+                    <span className="font-medium">
+                      Rated {appointment.review.rating}/5
+                    </span>
                   </div>
                 )}
-              </div>
-            )}
-          </CardContent>
+            </CardContent>
 
-          <CardFooter className="border-t pt-4">
-            <Button variant="outline" size="sm" className="w-full" asChild>
-              <Link href={`/dashboard/my-appointments/${appointment.id}`}>
-                View Details
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+            <CardFooter className="border-t bg-muted/30 px-6 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-full"
+                asChild
+              >
+                <Link href={`/dashboard/my-appointments/${appointment.id}`}>
+                  View Details
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        );
+      })}
     </div>
   );
 };
