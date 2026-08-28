@@ -17,7 +17,7 @@ const SIZE_CLASSES = {
 } as const;
 
 export default function HeartbeatLoader({
-  text = "Next Level healthcare...",
+  text = "MediCare Management System...",
   size = "md",
   className = "",
   animated = true,

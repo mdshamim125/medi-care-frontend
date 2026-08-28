@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { SheetTitle } from "@/components/ui/sheet";
 import { getIconComponent } from "@/lib/icon-mapper";
@@ -10,6 +9,7 @@ import { NavSection } from "@/types/dashboard.interface";
 import { UserInfo } from "@/types/user.interface";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import UserDropdown from "./UserDropdown";
 
 interface DashboardMobileSidebarContentProps {
   userInfo: UserInfo;
@@ -24,9 +24,9 @@ const DashboardMobileSidebar = ({
 }: DashboardMobileSidebarContentProps) => {
   const pathname = usePathname();
   return (
-    <div className=" flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
+      <div className="flex h-16 shrink-0 items-center border-b px-6">
         <Link href={dashboardHome}>
           <span className="text-xl font-bold text-primary">Medi Care</span>
         </Link>
@@ -34,7 +34,7 @@ const DashboardMobileSidebar = ({
       <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-3 py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <nav className="space-y-6">
           {navItems.map((section, sectionIdx) => (
             <div key={sectionIdx}>
@@ -76,22 +76,23 @@ const DashboardMobileSidebar = ({
             </div>
           ))}
         </nav>
-      </ScrollArea>
+      </div>
 
-      {/* User Info at Bottom */}
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-sm font-semibold text-primary">
+      {/* User Menu at Bottom */}
+      <div className="z-10 shrink-0 border-t bg-muted/20 p-3">
+        <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-2.5 shadow-sm">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            <span>
               {userInfo.name.charAt(0).toUpperCase()}
             </span>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-medium truncate">{userInfo.name}</p>
-            <p className="text-xs text-muted-foreground capitalize">
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <p className="truncate text-sm font-semibold">{userInfo.name}</p>
+            <p className="truncate text-xs capitalize text-muted-foreground">
               {userInfo.role.toLowerCase()}
             </p>
           </div>
+          <UserDropdown userInfo={userInfo} />
         </div>
       </div>
     </div>
