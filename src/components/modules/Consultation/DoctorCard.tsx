@@ -55,7 +55,7 @@ export default function DoctorCard({ doctor }: DoctorCard) {
 
             <div className="flex-1 min-w-0">
               <CardTitle className="flex items-center gap-1.5 text-lg leading-tight line-clamp-1">
-                Dr. {doctor.name}
+                {doctor.name}
                 <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
               </CardTitle>
               <CardDescription className="mt-1 line-clamp-1 text-sm">

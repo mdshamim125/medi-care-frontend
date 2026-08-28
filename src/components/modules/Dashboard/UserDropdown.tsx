@@ -12,26 +12,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserInfo } from "@/types/user.interface";
-import {
-  LayoutDashboard,
-  Settings,
-  ShieldCheck,
-  User,
-} from "lucide-react";
+import { Home, LayoutDashboard, ShieldCheck, User } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { getDefaultDashboardRoute } from "@/lib/auth-utils";
 
 interface UserDropdownProps {
   userInfo: UserInfo;
 }
 
 const UserDropdown = ({ userInfo }: UserDropdownProps) => {
+  const pathname = usePathname();
+  const isDashboardRoute = /^\/(admin|doctor|dashboard)(\/|$)/.test(pathname);
+  const dashboardLink = getDefaultDashboardRoute(userInfo.role);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="h-10 w-10 rounded-full p-0 border"
-        >
+        <Button variant="ghost" className="h-10 w-10 rounded-full p-0 border">
           <span className="text-sm font-semibold">
             {userInfo.name?.charAt(0).toUpperCase()}
           </span>
@@ -50,9 +48,7 @@ const UserDropdown = ({ userInfo }: UserDropdownProps) => {
             </div>
 
             <div className="min-w-0">
-              <p className="truncate font-semibold">
-                {userInfo.name}
-              </p>
+              <p className="truncate font-semibold">{userInfo.name}</p>
 
               <p className="truncate text-xs text-muted-foreground">
                 {userInfo.email}
@@ -69,9 +65,13 @@ const UserDropdown = ({ userInfo }: UserDropdownProps) => {
 
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              Home
+            <Link href={isDashboardRoute ? "/" : dashboardLink}>
+              {isDashboardRoute ? (
+                <Home className="mr-2 h-4 w-4" />
+              ) : (
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+              )}
+              {isDashboardRoute ? "Home" : "Dashboard"}
             </Link>
           </DropdownMenuItem>
 
@@ -88,7 +88,6 @@ const UserDropdown = ({ userInfo }: UserDropdownProps) => {
               Change Password
             </Link>
           </DropdownMenuItem>
-
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
