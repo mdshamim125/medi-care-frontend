@@ -25,9 +25,14 @@ const ScheduleFormDialog = ({
 }: IScheduleFormDialogProps) => {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, isPending] = useActionState(createSchedule, null);
+  const handledStateRef = useRef<typeof state>(null);
 
   // Handle success/error from server
   useEffect(() => {
+    if (!state || handledStateRef.current === state) return;
+
+    handledStateRef.current = state;
+
     if (state?.success) {
       toast.success(state.message || "Schedule created successfully");
       if (formRef.current) {
