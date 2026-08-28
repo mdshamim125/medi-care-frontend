@@ -48,6 +48,7 @@ const DoctorFormDialog = ({
   );
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const handledStateRef = useRef<typeof state>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,6 +82,10 @@ const DoctorFormDialog = ({
   };
 
   useEffect(() => {
+    if (!state || handledStateRef.current === state) return;
+
+    handledStateRef.current = state;
+
     if (state?.success) {
       toast.success(state.message);
       if (formRef.current) {

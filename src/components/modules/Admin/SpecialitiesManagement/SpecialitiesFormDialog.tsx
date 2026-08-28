@@ -28,12 +28,17 @@ const SpecialitiesFormDialog = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [state, formAction, pending] = useActionState(createSpeciality, null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const handledStateRef = useRef<typeof state>(null);
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setSelectedFile(file || null);
   };
 
   useEffect(() => {
+    if (!state || handledStateRef.current === state) return;
+
+    handledStateRef.current = state;
+
     if (state && state?.success) {
       toast.success(state.message);
       onSuccess();

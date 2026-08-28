@@ -21,8 +21,7 @@ const AdminDoctorsManagementPage = async ({
   const queryString = queryStringFormatter(searchParamsObj);
 
   // Keep this structure because it gives you smooth pagination behavior
-  const specialitiesResult = await getSpecialities();
-  const doctorsResult = await getDoctors(queryString);
+const specialitiesResult = await getSpecialities("?limit=1000");  const doctorsResult = await getDoctors(queryString);
 
   const specialities = specialitiesResult?.data || [];
   const doctors = doctorsResult?.data || [];
