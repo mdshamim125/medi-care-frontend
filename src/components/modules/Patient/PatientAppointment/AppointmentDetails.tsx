@@ -20,10 +20,12 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  FileText,
   MapPin,
   Phone,
   Star,
   Stethoscope,
+  TestTube2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -66,6 +68,7 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
   const isCompleted = appointment.status === AppointmentStatus.COMPLETED;
   const canReview = isCompleted && !appointment.review;
   const status = statusConfig[appointment.status];
+  const prescription = appointment.prescription;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -270,13 +273,13 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                     <p className="mt-1 text-lg font-semibold">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "EEEE"
+                        "EEEE",
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "MMMM d, yyyy"
+                        "MMMM d, yyyy",
                       )}
                     </p>
                   </div>
@@ -290,12 +293,12 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                       <p className="font-medium">
                         {format(
                           new Date(appointment.schedule.startDateTime),
-                          "h:mm a"
+                          "h:mm a",
                         )}{" "}
                         –{" "}
                         {format(
                           new Date(appointment.schedule.endDateTime),
-                          "h:mm a"
+                          "h:mm a",
                         )}
                       </p>
                     </div>
@@ -308,7 +311,7 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
       </div>
 
       {/* Prescription – full width */}
-      {appointment.prescription && (
+      {prescription && (
         <Card className="border-green-200 dark:border-green-800">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base text-green-700 dark:text-green-400">
@@ -317,50 +320,128 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-5">
-            {/* Medicines */}
+          <CardContent className="space-y-6">
+            {/* Health Issue */}
             <div>
-              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Medicines
-              </p>
-              <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-                  <p className="text-sm font-medium">Paracetamol 500 mg</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    1 tablet after meals, 2–3 times daily if fever occurs
-                  </p>
-                </li>
-                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-                  <p className="text-sm font-medium">Cetirizine 10 mg</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    1 tablet at night for 5 days
-                  </p>
-                </li>
-                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-                  <p className="text-sm font-medium">Saline Nasal Spray</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    2 sprays in each nostril, 3 times daily
-                  </p>
-                </li>
-              </ul>
-            </div>
-
-            {/* Advice */}
-            <div>
-              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Advice
-              </p>
-              <div className="rounded-lg border bg-muted/40 px-3.5 py-2.5 text-sm leading-relaxed text-muted-foreground">
-                <ul className="list-disc space-y-1 pl-4">
-                  <li>Drink plenty of water and take adequate rest</li>
-                  <li>Avoid cold drinks and dusty environments</li>
-                  <li>Follow up if symptoms worsen or do not improve</li>
-                </ul>
+              <div className="mb-2.5 flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Health Issue
+                </p>
+              </div>
+              <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {prescription.healthIssue || "No health issue recorded."}
+                </p>
               </div>
             </div>
 
+            {/* Given Test */}
+            {prescription.givenTest && (
+              <div>
+                <div className="mb-2.5 flex items-center gap-2">
+                  <TestTube2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Recommended Tests
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {prescription.givenTest}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Structured Instructions */}
+            {(() => {
+              const raw = prescription.instructions || "";
+
+              const medicinesMatch = raw.match(
+                /Medicines?\s*([\s\S]*?)(?=Advice|$)/i,
+              );
+              const adviceMatch = raw.match(/Advice\s*([\s\S]*)/i);
+
+              const medicinesText = medicinesMatch?.[1]?.trim() || "";
+              const adviceText = adviceMatch?.[1]?.trim() || "";
+              const hasStructure = medicinesText || adviceText;
+
+              if (!hasStructure) {
+                return (
+                  <div>
+                    <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Instructions
+                    </p>
+                    <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {raw || "No instructions provided."}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  {/* Medicines */}
+                  {medicinesText && (
+                    <div>
+                      <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Medicines
+                      </p>
+                      <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                        {medicinesText
+                          .split(/(?<=\.)\s+(?=[A-Z])/)
+                          .map((item) => item.trim())
+                          .filter(Boolean)
+                          .map((item, idx) => {
+                            const parts = item.split(/\s*[—–-]\s*/);
+                            const name = parts[0]?.trim() || item;
+                            const dosage = parts.slice(1).join(" — ").trim();
+
+                            return (
+                              <li
+                                key={idx}
+                                className="rounded-lg border bg-muted/40 px-3.5 py-2.5"
+                              >
+                                <p className="text-sm font-medium">{name}</p>
+                                {dosage && (
+                                  <p className="mt-0.5 text-sm text-muted-foreground">
+                                    {dosage}
+                                  </p>
+                                )}
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Advice */}
+                  {adviceText && (
+                    <div>
+                      <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Advice
+                      </p>
+                      <div className="rounded-lg border bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+                        <ul className="list-disc space-y-1.5 pl-4">
+                          {adviceText
+                            .split(/(?<=\.)\s+/)
+                            .map((item) => item.trim())
+                            .filter(Boolean)
+                            .map((item, idx) => (
+                              <li key={idx}>{item}</li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
             {/* Follow-up Date */}
-            {appointment.prescription.followUpDate && (
+            {prescription.followUpDate && (
               <div className="flex items-center justify-between rounded-lg border border-green-100 bg-green-50/60 px-4 py-3 dark:border-green-900 dark:bg-green-950/30">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">
@@ -368,8 +449,8 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                   </p>
                   <p className="mt-0.5 text-sm font-semibold">
                     {format(
-                      new Date(appointment.prescription.followUpDate),
-                      "MMMM d, yyyy"
+                      new Date(prescription.followUpDate),
+                      "EEEE, MMMM d, yyyy",
                     )}
                   </p>
                 </div>

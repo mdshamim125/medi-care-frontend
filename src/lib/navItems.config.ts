@@ -47,18 +47,20 @@ export const doctorNavItems: NavSection[] = [
         badge: "3",
         roles: ["DOCTOR"],
       },
-      {
-        title: "My Schedules",
-        href: "/doctor/dashboard/my-schedules",
-        icon: "Clock", // ✅ String
-        roles: ["DOCTOR"],
-      },
+      
       {
         title: "Prescriptions",
         href: "/doctor/dashboard/prescriptions",
         icon: "FileText", // ✅ String
         roles: ["DOCTOR"],
       },
+{
+        title: "My Schedules",
+        href: "/doctor/dashboard/my-schedules",
+        icon: "Clock", // ✅ String
+        roles: ["DOCTOR"],
+      },
+
     ],
   },
 ];
@@ -67,16 +69,18 @@ export const patientNavItems: NavSection[] = [
   {
     title: "Appointments",
     items: [
-      {
-        title: "My Appointments",
-        href: "/dashboard/my-appointments",
-        icon: "Calendar", // ✅ String
-        roles: ["PATIENT"],
-      },
+      
       {
         title: "Book Appointment",
         href: "/consultation",
         icon: "ClipboardList", // ✅ String
+        roles: ["PATIENT"],
+      },
+
+      {
+        title: "My Appointments",
+        href: "/dashboard/my-appointments",
+        icon: "Calendar", // ✅ String
         roles: ["PATIENT"],
       },
     ],

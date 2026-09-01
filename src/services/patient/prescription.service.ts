@@ -1,5 +1,8 @@
+
 "use server";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { serverFetch } from "@/lib/server-fetch";
 import { IPrescriptionFormData } from "@/types/prescription.interface";
 
@@ -13,9 +16,11 @@ export async function createPrescription(data: IPrescriptionFormData) {
     });
 
     const result = await response.json();
+
     return result;
   } catch (error: any) {
     console.error("Error creating prescription:", error);
+
     return {
       success: false,
       message:
@@ -29,12 +34,17 @@ export async function createPrescription(data: IPrescriptionFormData) {
 export async function getMyPrescriptions(queryString?: string) {
   try {
     const response = await serverFetch.get(
-      `/prescription/my-prescription${queryString ? `?${queryString}` : ""}`,
+      `/prescription/my-prescription${
+        queryString ? `?${queryString}` : ""
+      }`,
     );
+
     const result = await response.json();
+
     return result;
   } catch (error: any) {
     console.error("Error fetching prescriptions:", error);
+
     return {
       success: false,
       data: [],
@@ -51,10 +61,13 @@ export async function getAllPrescriptions(queryString?: string) {
     const response = await serverFetch.get(
       `/prescription${queryString ? `?${queryString}` : ""}`,
     );
+
     const result = await response.json();
+
     return result;
   } catch (error: any) {
     console.error("Error fetching prescriptions:", error);
+
     return {
       success: false,
       data: [],
@@ -65,3 +78,4 @@ export async function getAllPrescriptions(queryString?: string) {
     };
   }
 }
+
