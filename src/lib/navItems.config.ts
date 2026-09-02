@@ -47,6 +47,12 @@ export const doctorNavItems: NavSection[] = [
         badge: "3",
         roles: ["DOCTOR"],
       },
+      {
+        title: "My Patients",
+        href: "/doctor/dashboard/patients",
+        icon: "Users",
+        roles: ["DOCTOR"],
+      },
       
       {
         title: "Prescriptions",
