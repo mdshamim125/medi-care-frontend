@@ -4,20 +4,32 @@ import { IPatient } from "./patient.interface";
 
 export interface IPrescription {
   id: string;
+
   appointmentId: string;
   appointment?: IAppointment;
+
   doctorId: string;
   doctor?: IDoctor;
+
   patientId: string;
   patient?: IPatient;
+
+  healthIssue: string;
+  givenTest?: string | null;
+
   instructions: string;
   followUpDate?: string | null;
+
   createdAt: string;
   updatedAt: string;
 }
 
 export interface IPrescriptionFormData {
   appointmentId: string;
+
+  healthIssue: string;
+  givenTest?: string;
+
   instructions: string;
   followUpDate?: string;
 }

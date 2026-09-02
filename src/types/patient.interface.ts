@@ -10,6 +10,19 @@ export interface IPatient {
   updatedAt: string;
   patientHealthData?: IPatientHealthData;
   medicalReport?: IMedicalReport[];
+  appointments?: IPatientAppointment[];
+}
+
+export interface IPatientAppointment {
+  id: string;
+  status: string;
+  paymentStatus: string;
+  createdAt: string;
+  schedule?: {
+    startDateTime: string;
+    endDateTime: string;
+  };
+  prescription?: unknown;
 }
 
 export interface IPatientHealthData {

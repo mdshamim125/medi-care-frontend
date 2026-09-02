@@ -17,6 +17,7 @@ import {
   Download,
   FileText,
   Stethoscope,
+  TestTube2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,294 +29,368 @@ export default function PatientPrescriptionsList({
   prescriptions = [],
 }: PatientPrescriptionsListProps) {
   const sortedPrescriptions = [...prescriptions].sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
   const handleDownloadPDF = (prescription: IPrescription) => {
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  });
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 18;
-  const contentWidth = pageWidth - margin * 2;
-  let y = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    const colGap = 6;
+    const leftColWidth = contentWidth * 0.42;
+    const rightColWidth = contentWidth * 0.58 - colGap;
+    const leftX = margin;
+    const rightX = margin + leftColWidth + colGap;
 
-  // ── Header ──────────────────────────────────────────────
-  doc.setFillColor(15, 76, 129);
-  doc.rect(0, 0, pageWidth, 32, "F");
+    let y = 0;
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("Medi-Care", margin, 15);
+    // ══════════════════════════════════════════════════════════
+    // HEADER BAR
+    // ══════════════════════════════════════════════════════════
+    doc.setFillColor(15, 76, 129);
+    doc.rect(0, 0, pageWidth, 28, "F");
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text("Your Health, Our Priority", margin, 23);
+    // Accent line under header
+    doc.setFillColor(34, 139, 200);
+    doc.rect(0, 28, pageWidth, 1.5, "F");
 
-  doc.setFontSize(9);
-  doc.text("Official Prescription", pageWidth - margin, 15, {
-    align: "right",
-  });
-  doc.text(
-    `Ref: ${prescription.id.slice(0, 8).toUpperCase()}`,
-    pageWidth - margin,
-    23,
-    { align: "right" }
-  );
-
-  y = 45;
-
-  // ── Doctor Section ──────────────────────────────────────
-  doc.setTextColor(30, 30, 30);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("PRESCRIBED BY", margin, y);
-
-  y += 7;
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(margin, y, pageWidth - margin, y);
-
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text(prescription.doctor?.name || "Unknown Doctor", margin, y);
-
-  y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(80, 80, 80);
-
-  if (prescription.doctor?.designation) {
-    doc.text(prescription.doctor.designation, margin, y);
-    y += 5;
-  }
-
-  if (prescription.doctor?.email) {
-    doc.text(prescription.doctor.email, margin, y);
-    y += 5;
-  }
-
-  y += 8;
-
-  // ── Details Section ─────────────────────────────────────
-  doc.setTextColor(30, 30, 30);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("DETAILS", margin, y);
-
-  y += 7;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, y, pageWidth - margin, y);
-
-  y += 8;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-
-  const prescribedDate = format(
-    new Date(prescription.createdAt),
-    "MMMM d, yyyy"
-  );
-  doc.text(`Prescribed on:  ${prescribedDate}`, margin, y);
-  y += 6;
-
-  if (prescription.appointment?.schedule?.startDateTime) {
-    const apptDate = format(
-      new Date(prescription.appointment.schedule.startDateTime),
-      "MMMM d, yyyy"
-    );
-    doc.text(`Appointment:    ${apptDate}`, margin, y);
-    y += 6;
-  }
-
-  if (prescription.followUpDate) {
-    const followUp = format(
-      new Date(prescription.followUpDate),
-      "MMMM d, yyyy"
-    );
-    doc.setTextColor(15, 76, 129);
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text(`Follow-up:      ${followUp}`, margin, y);
+    doc.setFontSize(18);
+    doc.text("Medi-Care", margin, 13);
+
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(60, 60, 60);
-    y += 6;
-  }
+    doc.setFontSize(8);
+    doc.text("Your Health, Our Priority", margin, 20);
 
-  y += 10;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("OFFICIAL PRESCRIPTION", pageWidth - margin, 12, {
+      align: "right",
+    });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text(
+      `Ref: ${prescription.id.slice(0, 8).toUpperCase()}`,
+      pageWidth - margin,
+      19,
+      { align: "right" },
+    );
 
-  // ── Parse Instructions ──────────────────────────────────
-  const raw =
-    prescription.instructions || "No instructions provided.";
+    y = 38;
 
-  // Simple parser for "Medicines ... Advice ..." format
-  let medicinesText = "";
-  let adviceText = "";
+    // ══════════════════════════════════════════════════════════
+    // DOCTOR + PATIENT META (single row style)
+    // ══════════════════════════════════════════════════════════
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(margin, y, contentWidth, 28, 2, 2, "F");
 
-  const medicinesMatch = raw.match(
-    /Medicines?\s*([\s\S]*?)(?=Advice|$)/i
-  );
-  const adviceMatch = raw.match(/Advice\s*([\s\S]*)/i);
+    // Doctor
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.text("PRESCRIBED BY", margin + 4, y + 6);
 
-  if (medicinesMatch) {
-    medicinesText = medicinesMatch[1].trim();
-  }
-  if (adviceMatch) {
-    adviceText = adviceMatch[1].trim();
-  }
-
-  // Fallback: if no structure found, treat everything as instructions
-  const hasStructure = medicinesText || adviceText;
-
-  // ── Medicines Section ───────────────────────────────────
-  if (hasStructure && medicinesText) {
-    doc.setTextColor(30, 30, 30);
+    doc.setTextColor(20, 20, 20);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text("MEDICINES", margin, y);
+    doc.text(prescription.doctor?.name || "Unknown Doctor", margin + 4, y + 13);
 
-    y += 7;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(80, 80, 80);
+    let doctorMeta = "";
+    if (prescription.doctor?.designation)
+      doctorMeta += prescription.doctor.designation;
+    if (prescription.doctor?.email)
+      doctorMeta += (doctorMeta ? "  ·  " : "") + prescription.doctor.email;
+    doc.text(doctorMeta || "—", margin + 4, y + 19);
 
-    // Split medicines by common separators (period followed by capital letter or "—")
-    const medicineItems = medicinesText
-      .split(/(?<=\.)\s+(?=[A-Z])/)
-      .map((item) => item.trim())
-      .filter(Boolean);
+    // Dates on the right side of the meta box
+    const metaRightX = pageWidth - margin - 4;
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.text("PRESCRIBED ON", metaRightX, y + 6, { align: "right" });
 
-    medicineItems.forEach((item) => {
-      // Try to split "Name — dosage"
-      const parts = item.split(/\s*[—–-]\s*/);
-      const name = parts[0]?.trim() || item;
-      const dosage = parts.slice(1).join(" — ").trim();
+    doc.setTextColor(20, 20, 20);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      format(new Date(prescription.createdAt), "MMM d, yyyy"),
+      metaRightX,
+      y + 13,
+      { align: "right" },
+    );
 
-      // Medicine name
+    if (prescription.followUpDate) {
+      doc.setTextColor(15, 76, 129);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
+      doc.setFontSize(8);
+      doc.text(
+        `Follow-up: ${format(new Date(prescription.followUpDate), "MMM d, yyyy")}`,
+        metaRightX,
+        y + 20,
+        { align: "right" },
+      );
+    }
+
+    y += 36;
+
+    // ══════════════════════════════════════════════════════════
+    // TWO-COLUMN BODY
+    // Left  → Health Issue + Recommended Tests
+    // Right → Instructions (Medicines / Advice)
+    // ══════════════════════════════════════════════════════════
+
+    const colStartY = y;
+    let leftY = y;
+    let rightY = y;
+
+    // ── LEFT COLUMN ─────────────────────────────────────────
+
+    // Health Issue
+    doc.setFillColor(15, 76, 129);
+    doc.roundedRect(leftX, leftY, leftColWidth, 6, 1, 1, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("HEALTH ISSUE", leftX + 3, leftY + 4.2);
+    leftY += 9;
+
+    const healthIssue =
+      prescription.healthIssue?.trim() || "No health issue recorded.";
+    const healthLines = doc.splitTextToSize(healthIssue, leftColWidth - 4);
+    doc.setTextColor(30, 30, 30);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(healthLines, leftX + 2, leftY);
+    leftY += healthLines.length * 4.2 + 8;
+
+    // Recommended Tests
+    doc.setFillColor(15, 76, 129);
+    doc.roundedRect(leftX, leftY, leftColWidth, 6, 1, 1, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.text("RECOMMENDED TESTS", leftX + 3, leftY + 4.2);
+    leftY += 9;
+
+    if (prescription.givenTest?.trim()) {
+      const testLines = doc.splitTextToSize(
+        prescription.givenTest.trim(),
+        leftColWidth - 4,
+      );
       doc.setTextColor(30, 30, 30);
-      doc.text(`•  ${name}`, margin, y);
-      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(testLines, leftX + 2, leftY);
+      leftY += testLines.length * 4.2 + 4;
+    } else {
+      doc.setTextColor(140, 140, 140);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.text("None prescribed", leftX + 2, leftY);
+      leftY += 8;
+    }
 
-      // Dosage
-      if (dosage) {
-        doc.setFont("helvetica", "normal");
+    // ── RIGHT COLUMN ────────────────────────────────────────
+
+    // Parse instructions
+    const raw = prescription.instructions || "No instructions provided.";
+    let medicinesText = "";
+    let adviceText = "";
+
+    const medicinesMatch = raw.match(/Medicines?\s*([\s\S]*?)(?=Advice|$)/i);
+    const adviceMatch = raw.match(/Advice\s*([\s\S]*)/i);
+
+    if (medicinesMatch) medicinesText = medicinesMatch[1].trim();
+    if (adviceMatch) adviceText = adviceMatch[1].trim();
+    const hasStructure = !!(medicinesText || adviceText);
+
+    // Medicines
+    if (hasStructure && medicinesText) {
+      doc.setFillColor(15, 76, 129);
+      doc.roundedRect(rightX, rightY, rightColWidth, 6, 1, 1, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("MEDICINES", rightX + 3, rightY + 4.2);
+      rightY += 9;
+
+      const medicineItems = medicinesText
+        .split(/(?<=\.)\s+(?=[A-Z])/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      medicineItems.forEach((item, idx) => {
+        const parts = item.split(/\s*[—–-]\s*/);
+        const name = parts[0]?.trim() || item;
+        const dosage = parts.slice(1).join(" — ").trim();
+
+        // Light alternating background
+        if (idx % 2 === 0) {
+          doc.setFillColor(245, 248, 252);
+          const nameH = 4.5;
+          const dosageH = dosage
+            ? doc.splitTextToSize(dosage, rightColWidth - 10).length * 3.8
+            : 0;
+          doc.roundedRect(
+            rightX,
+            rightY - 2.5,
+            rightColWidth,
+            nameH + dosageH + 3,
+            1,
+            1,
+            "F",
+          );
+        }
+
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
-        doc.setTextColor(80, 80, 80);
-        const dosageLines = doc.splitTextToSize(
-          dosage,
-          contentWidth - 8
-        );
-        doc.text(dosageLines, margin + 6, y);
-        y += dosageLines.length * 4.5 + 3;
-      } else {
-        y += 2;
-      }
-    });
+        doc.setTextColor(20, 20, 20);
+        doc.text(`${idx + 1}.  ${name}`, rightX + 2, rightY);
+        rightY += 4.5;
 
-    y += 4;
-  }
+        if (dosage) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(80, 80, 80);
+          const dosageLines = doc.splitTextToSize(dosage, rightColWidth - 10);
+          doc.text(dosageLines, rightX + 7, rightY);
+          rightY += dosageLines.length * 3.8 + 2;
+        } else {
+          rightY += 1.5;
+        }
+      });
 
-  // ── Advice Section ──────────────────────────────────────
-  if (hasStructure && adviceText) {
-    doc.setTextColor(30, 30, 30);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text("ADVICE", margin, y);
+      rightY += 5;
+    }
 
-    y += 7;
+    // Advice
+    if (hasStructure && adviceText) {
+      doc.setFillColor(15, 76, 129);
+      doc.roundedRect(rightX, rightY, rightColWidth, 6, 1, 1, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("ADVICE", rightX + 3, rightY + 4.2);
+      rightY += 9;
+
+      const adviceItems = adviceText
+        .split(/(?<=\.)\s+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(40, 40, 40);
+
+      adviceItems.forEach((item) => {
+        const lines = doc.splitTextToSize(`•  ${item}`, rightColWidth - 4);
+        doc.text(lines, rightX + 2, rightY);
+        rightY += lines.length * 4.2 + 2;
+      });
+
+      rightY += 3;
+    }
+
+    // Fallback – unstructured
+    if (!hasStructure) {
+      doc.setFillColor(15, 76, 129);
+      doc.roundedRect(rightX, rightY, rightColWidth, 6, 1, 1, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("INSTRUCTIONS", rightX + 3, rightY + 4.2);
+      rightY += 9;
+
+      const splitText = doc.splitTextToSize(raw, rightColWidth - 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(40, 40, 40);
+      doc.text(splitText, rightX + 2, rightY);
+      rightY += splitText.length * 4.2 + 4;
+    }
+
+    // Vertical divider between columns
+    const colEndY = Math.max(leftY, rightY);
+    doc.setDrawColor(210, 215, 220);
+    doc.setLineWidth(0.3);
+    doc.line(
+      margin + leftColWidth + colGap / 2,
+      colStartY,
+      margin + leftColWidth + colGap / 2,
+      colEndY,
+    );
+
+    y = colEndY + 10;
+
+    // ══════════════════════════════════════════════════════════
+    // APPOINTMENT DATE (if available)
+    // ══════════════════════════════════════════════════════════
+    if (prescription.appointment?.schedule?.startDateTime) {
+      doc.setTextColor(100, 100, 100);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(
+        `Appointment date: ${format(
+          new Date(prescription.appointment.schedule.startDateTime),
+          "EEEE, MMMM d, yyyy",
+        )}`,
+        margin,
+        y,
+      );
+      y += 8;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // FOOTER
+    // ══════════════════════════════════════════════════════════
+    const footerY = pageHeight - 22;
+
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-
-    // Split advice into sentences
-    const adviceItems = adviceText
-      .split(/(?<=\.)\s+/)
-      .map((item) => item.trim())
-      .filter(Boolean);
+    doc.setLineWidth(0.4);
+    doc.line(margin, footerY, pageWidth - margin, footerY);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(7.5);
+    doc.setTextColor(130, 130, 130);
 
-    adviceItems.forEach((item) => {
-      const lines = doc.splitTextToSize(`•  ${item}`, contentWidth);
-      doc.text(lines, margin, y);
-      y += lines.length * 5 + 2;
-    });
+    doc.text(
+      "This is a computer-generated prescription from Medi-Care. No signature required.",
+      pageWidth / 2,
+      footerY + 5,
+      { align: "center" },
+    );
+    doc.text(
+      "Please consult your doctor for any questions or concerns regarding this prescription.",
+      pageWidth / 2,
+      footerY + 10,
+      { align: "center" },
+    );
+    doc.text(
+      `Generated on ${format(new Date(), "MMMM d, yyyy 'at' h:mm a")}`,
+      pageWidth / 2,
+      footerY + 15,
+      { align: "center" },
+    );
 
-    y += 4;
-  }
+    // Save
+    const fileName = `MediCare-Prescription-${prescription.id.slice(0, 8)}-${format(
+      new Date(prescription.createdAt),
+      "yyyy-MM-dd",
+    )}.pdf`;
 
-  // ── Fallback: unstructured instructions ─────────────────
-  if (!hasStructure) {
-    doc.setTextColor(30, 30, 30);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text("PRESCRIPTION INSTRUCTIONS", margin, y);
-
-    y += 7;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
-
-    const splitText = doc.splitTextToSize(raw, contentWidth - 8);
-    const boxHeight = splitText.length * 5.5 + 12;
-
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(margin, y - 4, contentWidth, boxHeight, 3, 3, "F");
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(40, 40, 40);
-    doc.text(splitText, margin + 4, y + 4);
-
-    y += boxHeight + 8;
-  }
-
-  // ── Footer / Disclaimer ─────────────────────────────────
-  const footerY = 275;
-
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.4);
-  doc.line(margin, footerY, pageWidth - margin, footerY);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(120, 120, 120);
-
-  doc.text(
-    "This is a computer-generated prescription from Medi-Care.",
-    pageWidth / 2,
-    footerY + 7,
-    { align: "center" }
-  );
-  doc.text(
-    "Please consult your doctor for any questions or concerns regarding this prescription.",
-    pageWidth / 2,
-    footerY + 12,
-    { align: "center" }
-  );
-  doc.text(
-    `Generated on ${format(new Date(), "MMMM d, yyyy 'at' h:mm a")}`,
-    pageWidth / 2,
-    footerY + 17,
-    { align: "center" }
-  );
-
-  const fileName = `MediCare-Prescription-${prescription.id.slice(0, 8)}-${format(
-    new Date(prescription.createdAt),
-    "yyyy-MM-dd"
-  )}.pdf`;
-
-  doc.save(fileName);
-};
+    doc.save(fileName);
+  };
 
   // ── Empty State ─────────────────────────────────────────────
   if (prescriptions.length === 0) {
@@ -342,6 +417,7 @@ export default function PatientPrescriptionsList({
           key={prescription.id}
           className="flex flex-col overflow-hidden transition-all hover:shadow-md"
         >
+          {/* Header – Doctor */}
           <CardHeader className="pb-4">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -364,41 +440,86 @@ export default function PatientPrescriptionsList({
           </CardHeader>
 
           <CardContent className="flex-1 space-y-4 pt-0">
-            {prescription.appointment?.schedule?.startDateTime && (
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="text-muted-foreground">Appointment</span>
-                <span className="ml-auto font-medium">
-                  {format(
-                    new Date(prescription.appointment.schedule.startDateTime),
-                    "MMM d, yyyy"
-                  )}
-                </span>
-              </div>
-            )}
+            {/* Two-column layout */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* LEFT */}
+              <div className="space-y-4">
+                <div>
+                  <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <FileText className="h-3.5 w-3.5" />
+                    Health Issue
+                  </div>
+                  <div className="rounded-lg border bg-muted/50 px-3 py-2.5">
+                    <p className="line-clamp-3 text-sm leading-relaxed">
+                      {prescription.healthIssue || "Not recorded"}
+                    </p>
+                  </div>
+                </div>
 
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                Instructions
+                {prescription.givenTest ? (
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <TestTube2 className="h-3.5 w-3.5" />
+                      Recommended Tests
+                    </div>
+                    <div className="rounded-lg border bg-muted/50 px-3 py-2.5">
+                      <p className="line-clamp-3 text-sm leading-relaxed">
+                        {prescription.givenTest}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <TestTube2 className="h-3.5 w-3.5" />
+                      Recommended Tests
+                    </div>
+                    <div className="rounded-lg border border-dashed bg-muted/30 px-3 py-2.5">
+                      <p className="text-sm italic text-muted-foreground">
+                        None prescribed
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="rounded-lg bg-muted/60 px-3 py-2.5">
-                <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                  {prescription.instructions || "No instructions provided."}
-                </p>
+
+              {/* RIGHT */}
+              <div>
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <FileText className="h-3.5 w-3.5" />
+                  Instructions
+                </div>
+                <div className="h-full min-h-[100px] rounded-lg border bg-muted/50 px-3 py-2.5">
+                  <p className="line-clamp-6 text-sm leading-relaxed text-muted-foreground">
+                    {prescription.instructions || "No instructions provided."}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {prescription.followUpDate && (
-              <Badge
-                variant="secondary"
-                className="gap-1.5 border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
-              >
-                <Calendar className="h-3 w-3" />
-                Follow-up:{" "}
-                {format(new Date(prescription.followUpDate), "MMM d, yyyy")}
-              </Badge>
-            )}
+            {/* Dates */}
+            <div className="flex flex-wrap items-center gap-2">
+              {prescription.appointment?.schedule?.startDateTime && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {format(
+                    new Date(prescription.appointment.schedule.startDateTime),
+                    "MMM d, yyyy",
+                  )}
+                </div>
+              )}
+
+              {prescription.followUpDate && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1.5 border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                >
+                  <Calendar className="h-3 w-3" />
+                  Follow-up:{" "}
+                  {format(new Date(prescription.followUpDate), "MMM d, yyyy")}
+                </Badge>
+              )}
+            </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-3 border-t bg-muted/30 px-6 py-4">

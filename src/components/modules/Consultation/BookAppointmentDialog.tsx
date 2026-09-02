@@ -125,7 +125,7 @@ export default function BookAppointmentDialog({
 
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">
-                  Dr. {doctor.name}
+                  {doctor.name}
                 </p>
 
                 <p className="truncate text-xs text-muted-foreground">

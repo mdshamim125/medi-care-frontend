@@ -2,17 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  AppointmentStatus,
-  IAppointment,
-} from "@/types/appointments.interface";
 import { format } from "date-fns";
 import {
   AlertCircle,
@@ -20,14 +11,27 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  CreditCard,
+  FileText,
+  Loader2,
   MapPin,
   Phone,
   Star,
   Stethoscope,
+  TestTube2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { changeAppointmentStatus } from "@/services/patient/appointment.service";
+import {
+  AppointmentStatus,
+  IAppointment,
+  PaymentStatus,
+} from "@/types/appointments.interface";
+import { toast } from "sonner";
+import AppointmentCountdown from "./AppointmentCountdown";
 import ReviewDialog from "./ReviewDialog";
+import { initiatePayment } from "@/services/payment/payment.service";
 
 interface AppointmentDetailProps {
   appointment: IAppointment;
@@ -50,7 +54,7 @@ const statusConfig: Record<
   [AppointmentStatus.COMPLETED]: {
     label: "Completed",
     className:
-      "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300",
+      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
   },
   [AppointmentStatus.CANCELED]: {
     label: "Canceled",
@@ -62,10 +66,67 @@ const statusConfig: Record<
 const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
   const router = useRouter();
   const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const isCompleted = appointment.status === AppointmentStatus.COMPLETED;
-  const canReview = isCompleted && !appointment.review;
+  const isCanceled = appointment.status === AppointmentStatus.CANCELED;
+  const isScheduled = appointment.status === AppointmentStatus.SCHEDULED;
+  const isUnpaid = appointment.paymentStatus === PaymentStatus.UNPAID;
+
+  const canReview = isCompleted && !appointment.review && !isUnpaid;
+  const canCancel = isScheduled && !isCanceled;
   const status = statusConfig[appointment.status];
+  const prescription = appointment.prescription;
+
+  const handlePayNow = async () => {
+    setIsProcessingPayment(true);
+    try {
+      const result = await initiatePayment(appointment.id);
+
+      if (result.success && result.data?.paymentUrl) {
+        toast.success("Redirecting to payment...");
+        sessionStorage.setItem(
+          "paymentReturnUrl",
+          "/dashboard/my-appointments",
+        );
+        window.location.replace(result.data.paymentUrl);
+      } else {
+        toast.error(result.message || "Failed to initiate payment");
+        setIsProcessingPayment(false);
+      }
+    } catch (error) {
+      toast.error("An error occurred while initiating payment");
+      setIsProcessingPayment(false);
+      console.error(error);
+    }
+  };
+
+  const handleCancelAppointment = async () => {
+    if (!confirm("Are you sure you want to cancel this appointment?")) {
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      const result = await changeAppointmentStatus(
+        appointment.id,
+        AppointmentStatus.CANCELED,
+      );
+
+      if (result.success) {
+        toast.success("Appointment cancelled successfully");
+        router.refresh();
+      } else {
+        toast.error(result.message || "Failed to cancel appointment");
+      }
+    } catch (error) {
+      toast.error("An error occurred while cancelling appointment");
+      console.error(error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -79,17 +140,35 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
             Complete information about your appointment
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="w-fit gap-2"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {canCancel && (
+            <Button
+              variant="destructive"
+              onClick={handleCancelAppointment}
+              disabled={isCancelling}
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                "Cancel Appointment"
+              )}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
       </div>
 
-      {/* Review prompts */}
+      {/* Alerts */}
       {canReview && (
         <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40">
           <CardContent className="flex items-start gap-4 pt-6">
@@ -116,6 +195,43 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
         </Card>
       )}
 
+      {!isCompleted && isUnpaid && (
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/40">
+          <CardContent className="flex items-start gap-4 pt-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900 dark:text-red-100">
+                Payment required
+              </h3>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                Please complete payment for this appointment
+                {isCompleted ? " before leaving a review." : "."}
+              </p>
+              <Button
+                size="sm"
+                className="mt-4 gap-1.5 bg-red-600 hover:bg-red-700"
+                onClick={handlePayNow}
+                disabled={isProcessingPayment}
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Pay Now
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {!isCompleted && !appointment.review && (
         <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40">
           <CardContent className="flex items-start gap-4 pt-6">
@@ -134,9 +250,9 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
         </Card>
       )}
 
-      {/* Main two-column layout */}
+      {/* Main layout */}
       <div className="grid gap-6 lg:grid-cols-5">
-        {/* Left: Doctor Information */}
+        {/* Doctor – left */}
         <Card className="self-start lg:col-span-3">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -237,20 +353,38 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
           </CardContent>
         </Card>
 
-        {/* Right: Status + Schedule */}
+        {/* Status + Schedule – right */}
         <div className="space-y-6 self-start lg:col-span-2">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Status</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Current status
+                  Appointment
                 </span>
                 <Badge variant="outline" className={status.className}>
                   {status.label}
                 </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Payment</span>
+                {isUnpaid ? (
+                  <Badge
+                    variant="outline"
+                    className="border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300"
+                  >
+                    Pending
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                  >
+                    Paid
+                  </Badge>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -270,13 +404,13 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                     <p className="mt-1 text-lg font-semibold">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "EEEE"
+                        "EEEE",
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {format(
                         new Date(appointment.schedule.startDateTime),
-                        "MMMM d, yyyy"
+                        "MMMM d, yyyy",
                       )}
                     </p>
                   </div>
@@ -290,16 +424,27 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                       <p className="font-medium">
                         {format(
                           new Date(appointment.schedule.startDateTime),
-                          "h:mm a"
+                          "h:mm a",
                         )}{" "}
                         –{" "}
                         {format(
                           new Date(appointment.schedule.endDateTime),
-                          "h:mm a"
+                          "h:mm a",
                         )}
                       </p>
                     </div>
                   </div>
+
+                  {isScheduled && appointment.schedule.startDateTime && (
+                    <>
+                      <Separator />
+                      <AppointmentCountdown
+                        appointmentDateTime={
+                          appointment.schedule.startDateTime
+                        }
+                      />
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -308,7 +453,7 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
       </div>
 
       {/* Prescription – full width */}
-      {appointment.prescription && (
+      {prescription && (
         <Card className="border-green-200 dark:border-green-800">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base text-green-700 dark:text-green-400">
@@ -317,50 +462,123 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-5">
-            {/* Medicines */}
+          <CardContent className="space-y-6">
+            {/* Health Issue */}
             <div>
-              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Medicines
-              </p>
-              <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-                  <p className="text-sm font-medium">Paracetamol 500 mg</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    1 tablet after meals, 2–3 times daily if fever occurs
-                  </p>
-                </li>
-                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-                  <p className="text-sm font-medium">Cetirizine 10 mg</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    1 tablet at night for 5 days
-                  </p>
-                </li>
-                <li className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-                  <p className="text-sm font-medium">Saline Nasal Spray</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    2 sprays in each nostril, 3 times daily
-                  </p>
-                </li>
-              </ul>
-            </div>
-
-            {/* Advice */}
-            <div>
-              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Advice
-              </p>
-              <div className="rounded-lg border bg-muted/40 px-3.5 py-2.5 text-sm leading-relaxed text-muted-foreground">
-                <ul className="list-disc space-y-1 pl-4">
-                  <li>Drink plenty of water and take adequate rest</li>
-                  <li>Avoid cold drinks and dusty environments</li>
-                  <li>Follow up if symptoms worsen or do not improve</li>
-                </ul>
+              <div className="mb-2.5 flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Health Issue
+                </p>
+              </div>
+              <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {prescription.healthIssue || "No health issue recorded."}
+                </p>
               </div>
             </div>
 
-            {/* Follow-up Date */}
-            {appointment.prescription.followUpDate && (
+            {/* Given Test */}
+            {prescription.givenTest && (
+              <div>
+                <div className="mb-2.5 flex items-center gap-2">
+                  <TestTube2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Recommended Tests
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {prescription.givenTest}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Structured Instructions */}
+            {(() => {
+              const raw = prescription.instructions || "";
+              const medicinesMatch = raw.match(
+                /Medicines?\s*([\s\S]*?)(?=Advice|$)/i,
+              );
+              const adviceMatch = raw.match(/Advice\s*([\s\S]*)/i);
+              const medicinesText = medicinesMatch?.[1]?.trim() || "";
+              const adviceText = adviceMatch?.[1]?.trim() || "";
+              const hasStructure = medicinesText || adviceText;
+
+              if (!hasStructure) {
+                return (
+                  <div>
+                    <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Instructions
+                    </p>
+                    <div className="rounded-lg border bg-muted/40 px-4 py-3">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {raw || "No instructions provided."}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  {medicinesText && (
+                    <div>
+                      <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Medicines
+                      </p>
+                      <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                        {medicinesText
+                          .split(/(?<=\.)\s+(?=[A-Z])/)
+                          .map((item) => item.trim())
+                          .filter(Boolean)
+                          .map((item, idx) => {
+                            const parts = item.split(/\s*[—–-]\s*/);
+                            const name = parts[0]?.trim() || item;
+                            const dosage = parts.slice(1).join(" — ").trim();
+
+                            return (
+                              <li
+                                key={idx}
+                                className="rounded-lg border bg-muted/40 px-3.5 py-2.5"
+                              >
+                                <p className="text-sm font-medium">{name}</p>
+                                {dosage && (
+                                  <p className="mt-0.5 text-sm text-muted-foreground">
+                                    {dosage}
+                                  </p>
+                                )}
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {adviceText && (
+                    <div>
+                      <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Advice
+                      </p>
+                      <div className="rounded-lg border bg-muted/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+                        <ul className="list-disc space-y-1.5 pl-4">
+                          {adviceText
+                            .split(/(?<=\.)\s+/)
+                            .map((item) => item.trim())
+                            .filter(Boolean)
+                            .map((item, idx) => (
+                              <li key={idx}>{item}</li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {prescription.followUpDate && (
               <div className="flex items-center justify-between rounded-lg border border-green-100 bg-green-50/60 px-4 py-3 dark:border-green-900 dark:bg-green-950/30">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">
@@ -368,8 +586,8 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
                   </p>
                   <p className="mt-0.5 text-sm font-semibold">
                     {format(
-                      new Date(appointment.prescription.followUpDate),
-                      "MMMM d, yyyy"
+                      new Date(prescription.followUpDate),
+                      "EEEE, MMMM d, yyyy",
                     )}
                   </p>
                 </div>
@@ -380,7 +598,7 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
         </Card>
       )}
 
-      {/* Review Section */}
+      {/* Review */}
       {appointment.review && (
         <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader>
@@ -426,7 +644,6 @@ const AppointmentDetails = ({ appointment }: AppointmentDetailProps) => {
         </Card>
       )}
 
-      {/* Review Dialog */}
       {canReview && (
         <ReviewDialog
           isOpen={showReviewDialog}
