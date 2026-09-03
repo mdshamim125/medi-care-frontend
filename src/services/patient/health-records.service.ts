@@ -61,6 +61,24 @@ export async function getMyMedicalReports() {
   }
 }
 
+export async function deleteMedicalReport(reportId: string) {
+  try {
+    const response = await serverFetch.delete(
+      `/patient/my-medical-reports/${reportId}`,
+    );
+    return await response.json();
+  } catch (error: any) {
+    console.error("Error deleting medical report:", error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Failed to delete medical report",
+    };
+  }
+}
+
 // Get patients who have paid appointments with the signed-in doctor
 export async function getDoctorPatients() {
   try {
