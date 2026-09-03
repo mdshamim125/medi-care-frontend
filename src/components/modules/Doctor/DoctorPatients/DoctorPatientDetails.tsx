@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import {
   ArrowLeft,
   CalendarDays,
+  Download,
   FileText,
   HeartPulse,
   Mail,
@@ -164,11 +165,26 @@ export default function DoctorPatientDetails({
                   Uploaded {format(new Date(report.createdAt), "MMM d, yyyy")}
                 </p>
               </div>
-              <Button asChild size="sm" variant="outline">
-                <a href={report.reportLink} target="_blank" rel="noreferrer">
-                  Open
-                </a>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <a href={report.reportLink} target="_blank" rel="noreferrer">
+                    Open
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  size="icon"
+                  variant="outline"
+                  title="Download report"
+                >
+                  <a href={report.reportLink} download={report.reportName}>
+                    <Download className="h-4 w-4" />
+                    <span className="sr-only">
+                      Download {report.reportName}
+                    </span>
+                  </a>
+                </Button>
+              </div>
             </div>
           ))}
         </div>

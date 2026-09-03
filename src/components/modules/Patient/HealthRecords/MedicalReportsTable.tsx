@@ -32,6 +32,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { deleteMedicalReport } from "@/services/patient/health-records.service";
+import { toast } from "sonner";
 
 interface MedicalReportsTableProps {
   reports: IMedicalReport[];
@@ -40,8 +42,48 @@ interface MedicalReportsTableProps {
 
 export default function MedicalReportsTable({
   reports,
+  onRefresh,
 }: MedicalReportsTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
+    const result = await deleteMedicalReport(deleteId);
+
+    if (result.success) {
+      toast.success(result.message || "Medical report deleted successfully");
+      setDeleteId(null);
+      await onRefresh?.();
+    } else {
+      toast.error(result.message || "Failed to delete medical report");
+    }
+
+    setIsDeleting(false);
+  };
+
+  const handleDownload = async (report: IMedicalReport) => {
+    try {
+      const response = await fetch(report.reportLink);
+
+      if (!response.ok) {
+        throw new Error("Unable to download report");
+      }
+
+      const blobUrl = URL.createObjectURL(await response.blob());
+      const downloadLink = document.createElement("a");
+      downloadLink.href = blobUrl;
+      downloadLink.download = report.reportName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      toast.error("Failed to download medical report");
+    }
+  };
 
   const getFileType = (link: string): "pdf" | "image" => {
     return link.toLowerCase().endsWith(".pdf") ? "pdf" : "image";
@@ -138,18 +180,14 @@ export default function MedicalReportsTable({
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <a
-                          href={report.reportLink}
-                          download={report.reportName}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Download Report"
+                          onClick={() => handleDownload(report)}
                         >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title="Download Report"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </a>
+                          <Download className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -181,8 +219,15 @@ export default function MedicalReportsTable({
           </AlertDialogHeader>
           <div className="flex justify-end gap-3">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
