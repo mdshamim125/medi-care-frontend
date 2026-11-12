@@ -239,6 +239,9 @@ export async function getNewAccessToken() {
       message: "Token refreshed successfully",
     };
   } catch (error: any) {
+    await deleteCookie("accessToken");
+    await deleteCookie("refreshToken");
+
     return {
       tokenRefreshed: false,
       success: false,

@@ -42,11 +42,11 @@ const ConsultationPage = async ({
               Care, matched to you
             </div>
             <h1 className="max-w-xl text-3xl font-bold tracking-tight text-foreground md:text-5xl">
-              Find the right doctor for your next step.
+              Find the right doctor for your next stop.
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
-            Search and book appointments with our qualified healthcare
-            professionals
+              Search and book appointments with our qualified healthcare
+              professionals
             </p>
           </div>
           <ArrowDown className="absolute -bottom-8 right-8 h-36 w-36 rotate-[-35deg] text-primary/10 md:right-20" />
@@ -65,7 +65,8 @@ const ConsultationPage = async ({
               </h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              {totalDoctors} {totalDoctors === 1 ? "doctor" : "doctors"} available
+              {totalDoctors} {totalDoctors === 1 ? "doctor" : "doctors"}{" "}
+              available
             </p>
           </div>
 

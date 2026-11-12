@@ -3,7 +3,8 @@ import { getCookie } from "@/services/auth/tokenHandlers";
 
 const BACKEND_API_URL =
   // process.env.INTERNAL_BASE_API_URL ||
-  process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:5000/api/v1";
+  process.env.NEXT_PUBLIC_BASE_API_URL ||
+  "http://localhost:5000/api/v1";
 // /auth/login
 const serverFetchHelper = async (
   endpoint: string,
@@ -11,7 +12,7 @@ const serverFetchHelper = async (
 ): Promise<Response> => {
   const { headers, ...restOptions } = options;
   //to stop recursion loop
-  if (endpoint !== "/auth/refresh-token") {
+  if (endpoint !== "/auth/refresh-token" && endpoint !== "/auth/login") {
     await getNewAccessToken();
   }
 

@@ -15,33 +15,38 @@ const SearchFilter = ({
   paramName = "searchTerm",
 }: SearchFilterProps) => {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const searchParams = useSearchParams();
-  const [value, setValue] = useState(searchParams.get(paramName) || "");
+  const searchValue = searchParams.get(paramName) || "";
+  const queryString = searchParams.toString();
+  const [draft, setDraft] = useState({ searchValue, value: searchValue });
+  const value = draft.searchValue === searchValue ? draft.value : searchValue;
   const debouncedValue = useDebounce(value, 500);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    const initialValue = searchParams.get(paramName) || "";
-
-    if (debouncedValue === initialValue) {
+    if (debouncedValue.trim() !== value.trim()) {
       return;
     }
 
-    if (debouncedValue) {
-      params.set(paramName, debouncedValue); // ?searchTerm=debouncedValue
-      params.set("page", "1"); // reset to first page on search
-    } else {
-      params.delete(paramName); // remove searchTerm param
-      params.delete("page"); // reset to first page on search clear
+    const params = new URLSearchParams(queryString);
+    const normalizedValue = debouncedValue.trim();
+    const currentValue = params.get(paramName) || "";
+
+    if (normalizedValue === currentValue) {
+      return;
     }
+
+    if (normalizedValue) {
+      params.set(paramName, normalizedValue);
+    } else {
+      params.delete(paramName);
+    }
+    params.set("page", "1");
 
     startTransition(() => {
       router.push(`?${params.toString()}`);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedValue, paramName, router]);
+  }, [debouncedValue, paramName, queryString, router, value]);
 
   return (
     <div className="relative">
@@ -50,8 +55,7 @@ const SearchFilter = ({
         placeholder={placeholder}
         className="pl-10"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
-        disabled={isPending}
+        onChange={(e) => setDraft({ searchValue, value: e.target.value })}
       />
     </div>
   );
