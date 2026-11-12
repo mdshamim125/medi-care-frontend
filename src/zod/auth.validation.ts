@@ -49,3 +49,27 @@ export const resetPasswordSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, "Enter your current password")
+      .max(100, "Password must be at most 100 characters"),
+    newPassword: z
+      .string()
+      .min(6, "New password must be at least 6 characters")
+      .max(100, "Password must be at most 100 characters"),
+    confirmPassword: z
+      .string()
+      .min(1, "Confirm your new password")
+      .max(100, "Password must be at most 100 characters"),
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from your current password",
+    path: ["newPassword"],
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });

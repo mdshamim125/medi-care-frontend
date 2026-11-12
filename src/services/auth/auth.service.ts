@@ -6,7 +6,10 @@ import {
 } from "@/lib/auth-utils";
 import { serverFetch } from "@/lib/server-fetch";
 import { zodValidator } from "@/lib/zodValidator";
-import { resetPasswordSchema } from "@/zod/auth.validation";
+import {
+  changePasswordSchema,
+  resetPasswordSchema,
+} from "@/zod/auth.validation";
 import { parse } from "cookie";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
@@ -50,6 +53,69 @@ export async function updateMyProfile(formData: FormData) {
     return {
       success: false,
       message: `${process.env.NODE_ENV === "development" ? error.message : "Something went wrong"}`,
+    };
+  }
+}
+
+export interface ChangePasswordActionState {
+  success: boolean;
+  message?: string;
+  errors?: { field: string; message: string }[];
+}
+
+export async function changeMyPassword(
+  _prevState: ChangePasswordActionState | null,
+  formData: FormData,
+): Promise<ChangePasswordActionState> {
+  const validationPayload = {
+    currentPassword: String(formData.get("currentPassword") || ""),
+    newPassword: String(formData.get("newPassword") || ""),
+    confirmPassword: String(formData.get("confirmPassword") || ""),
+  };
+  const validatedPayload = zodValidator(
+    validationPayload,
+    changePasswordSchema,
+  );
+
+  if (!validatedPayload.success || !validatedPayload.data) {
+    return {
+      success: false,
+      message: "Please review the highlighted fields.",
+      errors:
+        validatedPayload.errors?.map((error) => ({
+          field: String(error.field),
+          message: error.message,
+        })) || [],
+    };
+  }
+
+  try {
+    const response = await serverFetch.post("/auth/change-password", {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        oldPassword: validatedPayload.data.currentPassword,
+        newPassword: validatedPayload.data.newPassword,
+      }),
+    });
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        message: result.message || "Unable to update your password.",
+      };
+    }
+
+    revalidateTag("user-info", { expire: 0 });
+    return {
+      success: true,
+      message: result.message || "Your password has been updated.",
+    };
+  } catch (error) {
+    console.error("Change password error:", error);
+    return {
+      success: false,
+      message: "We couldn’t update your password. Please try again.",
     };
   }
 }

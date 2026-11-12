@@ -28,8 +28,8 @@ export const getCommonNavItems = (role: UserRole): NavSection[] => {
         {
           title: "Change Password",
           href: "/change-password",
-          icon: "Settings", // ✅ String
-          roles: ["PATIENT"],
+          icon: "Settings",
+          roles: ["PATIENT", "DOCTOR", "ADMIN", "SUPER_ADMIN"],
         },
       ],
     },

@@ -27,7 +27,6 @@ import {
   MapPin,
   Phone,
   Stethoscope,
-  UserRound,
   Video,
 } from "lucide-react";
 
@@ -70,6 +69,13 @@ const formatTime = (value?: string) => {
         hour: "numeric",
         minute: "2-digit",
       });
+};
+
+const formatTimestamp = (value?: string) => {
+  if (!value || Number.isNaN(new Date(value).getTime())) {
+    return "Not available";
+  }
+  return formatDateTime(value);
 };
 
 const AppointmentViewDetailDialog = ({
@@ -276,33 +282,25 @@ const AppointmentViewDetailDialog = ({
               <div className="grid gap-3 rounded-xl border bg-muted/20 p-4 sm:grid-cols-2">
                 <div className="flex items-start gap-3">
                   <Video className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                  <InfoRow
-                    label="Video call ID"
-                    value={
-                      appointment.videoCallingId ? (
-                        <span className="break-all font-mono text-xs">
-                          {appointment.videoCallingId}
-                        </span>
-                      ) : (
-                        "Not available"
-                      )
-                    }
-                  />
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Video call ID
+                    </p>
+                    <p className="break-all font-mono text-xs font-medium">
+                      {appointment.videoCallingId || "Not available"}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Hash className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                  <InfoRow
-                    label="Schedule reference"
-                    value={
-                      schedule?.id ? (
-                        <span className="break-all font-mono text-xs">
-                          {schedule.id}
-                        </span>
-                      ) : (
-                        "Not available"
-                      )
-                    }
-                  />
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Schedule reference
+                    </p>
+                    <p className="break-all font-mono text-xs font-medium">
+                      {schedule?.id || "Not available"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </section>
@@ -317,19 +315,11 @@ const AppointmentViewDetailDialog = ({
               <div className="grid gap-3 sm:grid-cols-2">
                 <InfoRow
                   label="Created"
-                  value={
-                    appointment.createdAt
-                      ? formatDateTime(appointment.createdAt)
-                      : "Not available"
-                  }
+                  value={formatTimestamp(appointment.createdAt)}
                 />
                 <InfoRow
                   label="Last updated"
-                  value={
-                    appointment.updatedAt
-                      ? formatDateTime(appointment.updatedAt)
-                      : "Not available"
-                  }
+                  value={formatTimestamp(appointment.updatedAt)}
                 />
               </div>
             </section>
