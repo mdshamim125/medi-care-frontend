@@ -9,24 +9,65 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
+import { IPrescription } from "@/types/prescription.interface";
+import { format, isValid, parseISO } from "date-fns";
 import {
   AlertCircle,
-  Calendar,
+  CalendarDays,
   CheckCircle2,
-  Clock,
+  Clock3,
   FileText,
   MapPin,
   Phone,
-  User,
+  Pill,
+  UserRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { doctorPrescriptionColumns } from "./doctorPrescriptionColumns";
-import { IPrescription } from "@/types/prescription.interface";
 
 interface DoctorPrescriptionsTableProps {
   prescriptions: IPrescription[];
+}
+
+const formatDate = (value?: string | null, pattern = "MMM d, yyyy") => {
+  if (!value) return "Not available";
+  const date = parseISO(value);
+  return isValid(date) ? format(date, pattern) : "Not available";
+};
+
+const getInstructionSections = (instructions: string) => {
+  const medicinesMatch = instructions.match(
+    /Medicines?\s*([\s\S]*?)(?=\n?\s*Advice\b|$)/i,
+  );
+  const adviceMatch = instructions.match(/Advice\s*([\s\S]*)/i);
+  const medicinesText = medicinesMatch?.[1]?.trim() || "";
+  const adviceText = adviceMatch?.[1]?.trim() || "";
+
+  return {
+    medicines: medicinesText.split(/\n+/).map((item) => item.trim()).filter(Boolean),
+    advice: adviceText.split(/\n+/).map((item) => item.trim()).filter(Boolean),
+    isStructured: Boolean(medicinesText || adviceText),
+  };
+};
+
+function DetailItem({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        {label}
+      </p>
+      <div className="mt-1.5 break-words text-sm font-medium leading-5 text-slate-800">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export default function DoctorPrescriptionsTable({
@@ -36,408 +77,303 @@ export default function DoctorPrescriptionsTable({
   const [viewingPrescription, setViewingPrescription] =
     useState<IPrescription | null>(null);
 
-  const handleView = (prescription: IPrescription) => {
-    setViewingPrescription(prescription);
-  };
-
   const handleClose = () => {
     setViewingPrescription(null);
     router.refresh();
   };
+
+  const schedule = viewingPrescription?.appointment?.schedule;
+  const startDateTime = schedule?.startDateTime;
+  const endDateTime = schedule?.endDateTime;
+  const instructionSections = getInstructionSections(
+    viewingPrescription?.instructions || "",
+  );
 
   return (
     <>
       <ManagementTable
         data={prescriptions}
         columns={doctorPrescriptionColumns}
-        onView={handleView}
+        onView={setViewingPrescription}
         getRowKey={(prescription) => prescription.id}
         emptyMessage="No prescriptions found"
       />
 
-      {/* View Detail Dialog */}
-      {viewingPrescription && (
-        <Dialog open={!!viewingPrescription} onOpenChange={handleClose}>
-          <DialogContent className="max-h-[90vh] w-[95vw] max-w-3xl overflow-y-auto p-0">
-            <DialogHeader className="border-b bg-muted/30 px-6 py-5">
-              <DialogTitle className="text-xl">
-                Prescription Details
-              </DialogTitle>
+      <Dialog
+        open={!!viewingPrescription}
+        onOpenChange={(open) => {
+          if (!open) handleClose();
+        }}
+      >
+        {viewingPrescription && (
+          <DialogContent className="flex max-h-[92vh] w-[calc(100vw-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border-slate-200 p-0 shadow-2xl">
+            <DialogHeader className="shrink-0 border-b border-slate-200 bg-gradient-to-r from-teal-50 via-white to-slate-50 px-5 py-5 text-left sm:px-7">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DialogTitle className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                      Prescription details
+                    </DialogTitle>
+                    <Badge className="border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50">
+                      <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                      Issued
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Patient care record
+                    <span className="mx-2 text-slate-300">•</span>
+                    Issued {formatDate(viewingPrescription.createdAt)}
+                  </p>
+                </div>
+              </div>
             </DialogHeader>
 
-            <div className="space-y-6 px-6 py-5">
-              {/* PATIENT INFORMATION */}
-              <div className="rounded-xl border bg-muted/40 p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold">Patient Information</h3>
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-slate-50/60 px-5 py-5 sm:px-7">
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+                  <UserRound className="h-4 w-4 text-teal-700" />
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Patient information
+                  </h3>
                 </div>
-
-                <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Name</p>
-                    <p className="mt-0.5 font-medium">
-                      {viewingPrescription.patient?.name || "N/A"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="mt-0.5 break-all font-medium">
-                      {viewingPrescription.patient?.email || "N/A"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground">Contact</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 font-medium">
-                      <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                <div className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
+                  <DetailItem label="Patient name">
+                    {viewingPrescription.patient?.name || "Not available"}
+                  </DetailItem>
+                  <DetailItem label="Email">
+                    {viewingPrescription.patient?.email || "Not available"}
+                  </DetailItem>
+                  <DetailItem label="Contact">
+                    <span className="inline-flex items-center gap-2">
+                      <Phone className="h-3.5 w-3.5 text-slate-400" />
                       {viewingPrescription.patient?.contactNumber ||
                         "Not provided"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground">Address</p>
-                    <p className="mt-0.5 flex items-start gap-1.5 font-medium">
-                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    </span>
+                  </DetailItem>
+                  <DetailItem label="Address">
+                    <span className="inline-flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
                       {viewingPrescription.patient?.address || "Not provided"}
-                    </p>
-                  </div>
+                    </span>
+                  </DetailItem>
                 </div>
-              </div>
+              </section>
 
-              {/* APPOINTMENT INFORMATION */}
-              <div className="rounded-xl border p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold">Appointment Information</h3>
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+                  <CalendarDays className="h-4 w-4 text-teal-700" />
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Related appointment
+                  </h3>
                 </div>
-
-                <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Date</p>
-                    <p className="mt-0.5 font-medium">
-                      {viewingPrescription.appointment?.schedule?.startDateTime
-                        ? format(
-                            new Date(
-                              viewingPrescription.appointment.schedule
-                                .startDateTime,
-                            ),
-                            "EEEE, MMM d, yyyy",
-                          )
-                        : "N/A"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground">Time</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 font-medium">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      {viewingPrescription.appointment?.schedule
-                        ?.startDateTime &&
-                      viewingPrescription.appointment?.schedule?.endDateTime
-                        ? `${format(
-                            new Date(
-                              viewingPrescription.appointment.schedule
-                                .startDateTime,
-                            ),
-                            "h:mm a",
-                          )} – ${format(
-                            new Date(
-                              viewingPrescription.appointment.schedule
-                                .endDateTime,
-                            ),
-                            "h:mm a",
-                          )}`
-                        : "N/A"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground">Status</p>
-                    <div className="mt-1">
-                      <Badge variant="default" className="bg-green-600">
-                        {viewingPrescription.appointment?.status || "N/A"}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground">Payment</p>
-                    <div className="mt-1">
-                      <Badge
-                        variant={
-                          viewingPrescription.appointment?.paymentStatus ===
-                          "PAID"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {viewingPrescription.appointment?.paymentStatus ||
-                          "N/A"}
-                      </Badge>
-                    </div>
-                  </div>
+                <div className="grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
+                  <DetailItem label="Appointment date">
+                    {formatDate(startDateTime, "EEEE, MMM d, yyyy")}
+                  </DetailItem>
+                  <DetailItem label="Appointment time">
+                    <span className="inline-flex items-center gap-2">
+                      <Clock3 className="h-3.5 w-3.5 text-slate-400" />
+                      {startDateTime && endDateTime
+                        ? `${formatDate(startDateTime, "h:mm a")} – ${formatDate(endDateTime, "h:mm a")}`
+                        : "Not available"}
+                    </span>
+                  </DetailItem>
+                  <DetailItem label="Visit status">
+                    <Badge variant="outline" className="font-medium">
+                      {viewingPrescription.appointment?.status || "Not available"}
+                    </Badge>
+                  </DetailItem>
+                  <DetailItem label="Payment status">
+                    <Badge
+                      variant="outline"
+                      className={
+                        viewingPrescription.appointment?.paymentStatus === "PAID"
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                          : "border-slate-200 bg-slate-50 text-slate-700"
+                      }
+                    >
+                      {viewingPrescription.appointment?.paymentStatus ||
+                        "Not available"}
+                    </Badge>
+                  </DetailItem>
                 </div>
-              </div>
+              </section>
 
-              {/* PRESCRIPTION DETAILS */}
-              <div className="rounded-xl border p-5">
-                <div className="mb-5 flex items-center justify-between">
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <h3 className="font-semibold">Prescription</h3>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Medication instructions and clinical advice
-                      </p>
-                    </div>
+                    <Pill className="h-4 w-4 text-teal-700" />
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      Treatment plan
+                    </h3>
                   </div>
-
-                  <Badge variant="outline" className="text-xs">
-                    Read-only
+                  <Badge variant="outline" className="text-slate-500">
+                    Read-only record
                   </Badge>
                 </div>
 
-                {/* SUCCESS NOTICE */}
-                <div className="mb-5 flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-3.5 dark:border-green-800 dark:bg-green-950/40">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+                <div className="space-y-5 p-4 sm:p-5">
                   <div>
-                    <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                      Prescription has been provided
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Health issue
                     </p>
-                    <p className="mt-0.5 text-xs text-green-700 dark:text-green-300">
-                      This prescription is permanent and cannot be modified.
-                    </p>
-                  </div>
-                </div>
-
-                {/* HEALTH ISSUE */}
-                <div className="mb-5">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Health Issue
-                  </p>
-                  <div className="rounded-lg border bg-muted/40 px-3.5 py-3">
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {viewingPrescription.healthIssue ||
-                        "No health issue recorded."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* GIVEN TEST */}
-                {viewingPrescription.givenTest && (
-                  <div className="mb-5">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Given Test
-                    </p>
-                    <div className="rounded-lg border bg-muted/40 px-3.5 py-3">
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {viewingPrescription.givenTest}
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                        {viewingPrescription.healthIssue ||
+                          "No health issue recorded."}
                       </p>
                     </div>
                   </div>
-                )}
 
-                {/* STRUCTURED INSTRUCTIONS */}
-                <div className="space-y-6">
-                  {(() => {
-                    const rawInstructions =
-                      viewingPrescription.instructions || "";
+                  {viewingPrescription.givenTest && (
+                    <div>
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        Tests requested
+                      </p>
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                          {viewingPrescription.givenTest}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                    const medicinesMatch = rawInstructions.match(
-                      /Medicines?\s*([\s\S]*?)(?=\n?\s*Advice\b|$)/i,
-                    );
-                    const adviceMatch =
-                      rawInstructions.match(/Advice\s*([\s\S]*)/i);
-
-                    const medicinesText = medicinesMatch?.[1]?.trim() || "";
-                    const adviceText = adviceMatch?.[1]?.trim() || "";
-
-                    const medicines = medicinesText
-                      .split(/\n+/)
-                      .map((item) => item.trim())
-                      .filter(Boolean);
-
-                    const advice = adviceText
-                      .split(/\n+/)
-                      .map((item) => item.trim())
-                      .filter(Boolean);
-
-                    // Fallback if no structure found
-                    if (!medicinesText && !adviceText) {
-                      return (
+                  {instructionSections.isStructured ? (
+                    <div className="space-y-5">
+                      {instructionSections.medicines.length > 0 && (
                         <div>
-                          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Instructions
-                          </p>
-                          <div className="rounded-lg border bg-muted/40 px-3.5 py-3">
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                              {rawInstructions || "No instructions provided."}
+                          <div className="mb-2 flex items-center gap-2">
+                            <Pill className="h-4 w-4 text-teal-700" />
+                            <p className="text-sm font-semibold text-slate-900">
+                              Prescribed medicines
                             </p>
                           </div>
-                        </div>
-                      );
-                    }
+                          <div className="overflow-hidden rounded-lg border border-slate-200">
+                            {instructionSections.medicines.map(
+                              (medicine, index) => {
+                                const [medicineName, ...dosageParts] =
+                                  medicine.split(/\s*[—–-]\s*/);
+                                const dosage = dosageParts.join(" — ").trim();
 
-                    return (
-                      <>
-                        {/* MEDICINES */}
-                        {medicines.length > 0 && (
-                          <section>
-                            <div className="mb-3 flex items-center gap-2">
-                              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
-                                <span className="text-sm font-bold text-primary">
-                                  Rx
-                                </span>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-semibold">
-                                  Medicines
-                                </h4>
-                                <p className="text-xs text-muted-foreground">
-                                  Prescribed medication and dosage instructions
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="overflow-hidden rounded-lg border">
-                              <div className="divide-y">
-                                {medicines.map((medicine, index) => {
-                                  const parts = medicine.split(/\s*[—–-]\s*/);
-                                  const medicineName =
-                                    parts[0]?.trim() || medicine;
-                                  const dosage = parts
-                                    .slice(1)
-                                    .join(" — ")
-                                    .trim();
-
-                                  return (
-                                    <div
-                                      key={index}
-                                      className="flex gap-4 px-4 py-3.5"
-                                    >
-                                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-                                        {index + 1}
-                                      </div>
-                                      <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-semibold">
-                                          {medicineName}
-                                        </p>
-                                        {dosage && (
-                                          <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                                            {dosage}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </section>
-                        )}
-
-                        {/* ADVICE */}
-                        {advice.length > 0 && (
-                          <section>
-                            <div className="mb-3">
-                              <h4 className="text-sm font-semibold">
-                                Doctor&apos;s Advice
-                              </h4>
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                Additional instructions for the patient
-                              </p>
-                            </div>
-
-                            <div className="rounded-lg border bg-muted/30 p-4">
-                              <ul className="space-y-2.5">
-                                {advice.map((item, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-start gap-2.5 text-sm leading-5"
+                                return (
+                                  <div
+                                    key={`${index}-${medicine}`}
+                                    className="flex items-start gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0"
                                   >
-                                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </section>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-
-                {/* FOLLOW-UP */}
-                {viewingPrescription.followUpDate && (
-                  <div className="mt-6 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3.5 dark:border-blue-900 dark:bg-blue-950/30">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Follow-up Appointment
-                      </p>
-                      <p className="mt-1 text-sm font-semibold">
-                        {format(
-                          new Date(viewingPrescription.followUpDate),
-                          "EEEE, MMMM d, yyyy",
-                        )}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {format(
-                          new Date(viewingPrescription.followUpDate),
-                          "h:mm a",
-                        )}
-                      </p>
-                    </div>
-                    <div className="rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                      Follow-up
-                    </div>
-                  </div>
-                )}
-
-                {/* PRESCRIBED ON */}
-                <div className="mt-6 flex items-center justify-between border-t pt-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      Prescribed On
-                    </p>
-                    <p className="mt-0.5 text-sm font-medium">
-                      {format(
-                        new Date(viewingPrescription.createdAt),
-                        "MMMM d, yyyy",
+                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-semibold text-teal-800">
+                                      {index + 1}
+                                    </span>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold text-slate-800">
+                                        {medicineName?.trim() || medicine}
+                                      </p>
+                                      {dosage && (
+                                        <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-slate-500">
+                                          {dosage}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              },
+                            )}
+                          </div>
+                        </div>
                       )}
+
+                      {instructionSections.advice.length > 0 && (
+                        <div>
+                          <p className="mb-2 text-sm font-semibold text-slate-900">
+                            Doctor&apos;s advice
+                          </p>
+                          <ul className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                            {instructionSections.advice.map((item, index) => (
+                              <li
+                                key={`${index}-${item}`}
+                                className="flex items-start gap-2.5 text-sm leading-5 text-slate-700"
+                              >
+                                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        Instructions
+                      </p>
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                          {viewingPrescription.instructions ||
+                            "No instructions provided."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Follow-up
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {viewingPrescription.followUpDate
+                      ? formatDate(
+                          viewingPrescription.followUpDate,
+                          "EEEE, MMMM d, yyyy",
+                        )
+                      : "No follow-up scheduled"}
+                  </p>
+                  {viewingPrescription.followUpDate && (
+                    <p className="mt-1 text-sm text-slate-500">
+                      {formatDate(viewingPrescription.followUpDate, "h:mm a")}
                     </p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {format(
-                      new Date(viewingPrescription.createdAt),
-                      "h:mm a",
+                  )}
+                </section>
+                <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Record issued
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {formatDate(
+                      viewingPrescription.createdAt,
+                      "EEEE, MMMM d, yyyy",
                     )}
                   </p>
-                </div>
-
-                {/* READ-ONLY NOTICE */}
-                <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-muted/40 px-3.5 py-2.5">
-                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">
-                    This prescription is read-only and cannot be edited or
-                    deleted.
+                  <p className="mt-1 text-sm text-slate-500">
+                    {formatDate(viewingPrescription.createdAt, "h:mm a")}
                   </p>
-                </div>
+                </section>
+              </div>
+
+              <div className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-slate-500">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p className="text-xs leading-5">
+                  This prescription is a read-only clinical record and cannot
+                  be edited or deleted.
+                </p>
               </div>
             </div>
 
-            {/* FOOTER */}
-            <div className="flex justify-end border-t bg-muted/20 px-6 py-4">
-              <Button variant="outline" onClick={handleClose}>
+            <div className="flex shrink-0 justify-end border-t border-slate-200 bg-white px-5 py-3.5 sm:px-7">
+              <Button
+                className="min-w-24 bg-teal-700 hover:bg-teal-800"
+                onClick={handleClose}
+              >
                 Close
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
-      )}
+        )}
+      </Dialog>
     </>
   );
 }

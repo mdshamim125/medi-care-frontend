@@ -67,13 +67,12 @@ export async function createAppointmentWithPayLater(data: IAppointmentFormData) 
 
 export async function getMyAppointments(queryString?: string) {
     try {
+        const query = queryString
+            ? `${queryString.startsWith("?") ? "" : "?"}${queryString}`
+            : "?sortBy=createdAt&sortOrder=desc";
         const response = await serverFetch.get(
-            `/appointment/my-appointment${queryString ? `?${queryString}` : "?sortBy=createdAt&sortOrder=desc"}`, {
-            next: {
-                tags: ["my-appointments"],
-                revalidate: 120,
-            },
-        }
+            `/appointment/my-appointment${query}`,
+            { cache: "no-store" },
         );
         const result = await response.json();
         return result;

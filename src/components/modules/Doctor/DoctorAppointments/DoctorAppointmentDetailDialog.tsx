@@ -3,24 +3,34 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getInitials } from "@/lib/formatters";
 import { createPrescription } from "@/services/patient/prescription.service";
-import { IAppointment } from "@/types/appointments.interface";
+import {
+  AppointmentStatus,
+  IAppointment,
+  PaymentStatus,
+} from "@/types/appointments.interface";
 import { format } from "date-fns";
 import {
   AlertCircle,
   Calendar,
+  CalendarDays,
   CheckCircle2,
   Clock,
+  CreditCard,
   Loader2,
+  Mail,
   MapPin,
   Phone,
   Star,
@@ -38,13 +48,13 @@ interface DoctorAppointmentDetailDialogProps {
 
 const statusStyles: Record<string, string> = {
   SCHEDULED:
-    "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
+    "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-300",
   INPROGRESS:
     "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
   COMPLETED:
-    "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300",
+    "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
   CANCELED:
-    "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
+    "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300",
 };
 
 export default function DoctorAppointmentDetailDialog({
@@ -65,9 +75,14 @@ export default function DoctorAppointmentDetailDialog({
   const { patient, schedule, status, paymentStatus, prescription, review } =
     appointment;
 
-  const isCompleted = status === "COMPLETED";
+  const isCompleted = status === AppointmentStatus.COMPLETED;
   const hasPrescription = !!prescription;
   const canWritePrescription = isCompleted && !hasPrescription;
+  const isPaid = paymentStatus === PaymentStatus.PAID;
+  const statusLabel =
+    status === AppointmentStatus.INPROGRESS
+      ? "In progress"
+      : status.charAt(0) + status.slice(1).toLowerCase();
 
   const handleSubmitPrescription = async () => {
     if (!healthIssue.trim()) {
@@ -148,116 +163,171 @@ export default function DoctorAppointmentDetailDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto p-0">
-        <DialogHeader className="border-b bg-muted/30 px-6 py-5">
-          <DialogTitle className="text-xl">Appointment Details</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6 px-6 py-5">
-          {/* PATIENT INFORMATION */}
-          <div className="rounded-xl border bg-muted/40 p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Patient Information</h3>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent className="flex max-h-[92vh] w-[calc(100%-1rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:w-full">
+        <DialogHeader className="shrink-0 border-b border-teal-100 bg-linear-to-r from-teal-50/80 to-white px-5 py-5 pr-12 text-left sm:px-6">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-teal-700 shadow-sm ring-1 ring-teal-100">
+              <CalendarDays className="h-5 w-5" />
             </div>
-
-            <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Name</p>
-                <p className="mt-0.5 font-medium">{patient?.name || "N/A"}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                <p className="mt-0.5 break-all font-medium">
-                  {patient?.email || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Contact</p>
-                <p className="mt-0.5 flex items-center gap-1.5 font-medium">
-                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                  {patient?.contactNumber || "Not provided"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Address</p>
-                <p className="mt-0.5 flex items-start gap-1.5 font-medium">
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  {patient?.address || "Not provided"}
-                </p>
-              </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
+                Appointment record
+              </p>
+              <DialogTitle className="mt-1 text-xl text-slate-900">
+                Appointment details
+              </DialogTitle>
+              <DialogDescription className="mt-1">
+                Review the patient, schedule, and prescription information.
+              </DialogDescription>
             </div>
           </div>
+        </DialogHeader>
 
-          {/* APPOINTMENT DETAILS */}
-          <div className="rounded-xl border p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Appointment Details</h3>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin]">
+          <div className="space-y-5 p-4 sm:space-y-6 sm:p-6">
+          {/* PATIENT INFORMATION */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                  <User className="h-4 w-4" />
+                </span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Patient information
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Contact details for this visit
+                  </p>
+                </div>
+              </div>
+              {patient && (
+                <Badge
+                  variant="outline"
+                  className="hidden border-teal-200 bg-teal-50 text-teal-800 sm:inline-flex"
+                >
+                  Appointment patient
+                </Badge>
+              )}
             </div>
 
-            <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Date</p>
-                <p className="mt-0.5 font-medium">
-                  {schedule?.startDateTime
+            <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3.5">
+              <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                <AvatarImage
+                  src={patient?.profilePhoto || ""}
+                  alt={patient?.name || "Patient"}
+                />
+                <AvatarFallback className="bg-teal-100 font-semibold text-teal-800">
+                  {getInitials(patient?.name || "Patient")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-slate-900">
+                  {patient?.name || "Patient unavailable"}
+                </p>
+                <p className="mt-0.5 truncate text-sm text-slate-500">
+                  <Mail className="mr-1.5 inline h-3.5 w-3.5 text-slate-400" />
+                  {patient?.email || "Email not provided"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <InfoTile
+                icon={<Phone />}
+                label="Phone"
+                value={patient?.contactNumber || "Not provided"}
+              />
+              <InfoTile
+                icon={<MapPin />}
+                label="Address"
+                value={patient?.address || "Not provided"}
+              />
+            </div>
+          </section>
+
+          {/* APPOINTMENT DETAILS */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                  <Calendar className="h-4 w-4" />
+                </span>
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Appointment schedule
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Date, time, and visit status
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant="outline"
+                  className={statusStyles[status] || ""}
+                >
+                  {statusLabel}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className={
+                    isPaid
+                      ? "gap-1 border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "gap-1 border-amber-200 bg-amber-50 text-amber-800"
+                  }
+                >
+                  <CreditCard className="h-3 w-3" />
+                  {isPaid ? "Paid" : "Unpaid"}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <InfoTile
+                icon={<CalendarDays />}
+                label="Date"
+                value={
+                  schedule?.startDateTime
                     ? format(
                         new Date(schedule.startDateTime),
                         "EEEE, MMM d, yyyy",
                       )
-                    : "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Time</p>
-                <p className="mt-0.5 flex items-center gap-1.5 font-medium">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  {schedule?.startDateTime && schedule?.endDateTime
+                    : "Not available"
+                }
+              />
+              <InfoTile
+                icon={<Clock />}
+                label="Time"
+                value={
+                  schedule?.startDateTime && schedule?.endDateTime
                     ? `${format(
                         new Date(schedule.startDateTime),
                         "h:mm a",
                       )} – ${format(new Date(schedule.endDateTime), "h:mm a")}`
-                    : "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Status</p>
-                <div className="mt-1">
-                  <Badge
-                    variant="outline"
-                    className={statusStyles[status] || ""}
-                  >
-                    {status}
-                  </Badge>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground">Payment</p>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      paymentStatus === "PAID" ? "default" : "destructive"
-                    }
-                  >
-                    {paymentStatus}
-                  </Badge>
-                </div>
-              </div>
+                    : "Not available"
+                }
+              />
             </div>
-          </div>
+            <p className="mt-4 truncate border-t border-slate-100 pt-3 font-mono text-xs text-slate-500">
+              Appointment reference: {appointment.id}
+            </p>
+          </section>
 
           {/* PRESCRIPTION */}
-          <div className="rounded-xl border p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Prescription</h3>
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                <CheckCircle2 className="h-4 w-4" />
+              </span>
+              <div>
+                <h3 className="font-semibold text-slate-900">Prescription</h3>
+                <p className="text-xs text-slate-500">
+                  Review or prepare the care instructions
+                </p>
+              </div>
             </div>
 
             {/* CANCELED */}
@@ -546,7 +616,7 @@ Avoid cold drinks and dusty environments.`}
                 </p>
               </div>
             )}
-          </div>
+          </section>
 
           {/* PATIENT REVIEW */}
           {review && (
@@ -628,15 +698,42 @@ Avoid cold drinks and dusty environments.`}
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* FOOTER */}
-        <div className="flex justify-end border-t bg-muted/20 px-6 py-4">
-          <Button variant="outline" onClick={handleClose}>
+        <div className="flex shrink-0 justify-end border-t border-slate-200 bg-white px-5 py-3.5 sm:px-6">
+          <Button variant="outline" className="min-w-24" onClick={handleClose}>
             Close
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function InfoTile({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
+      <span className="mt-0.5 shrink-0 text-teal-700 [&_svg]:h-4 [&_svg]:w-4">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          {label}
+        </p>
+        <p className="mt-1 break-words text-sm font-medium text-slate-800">
+          {value}
+        </p>
+      </div>
+    </div>
   );
 }

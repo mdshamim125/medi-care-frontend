@@ -35,23 +35,13 @@ export default function DoctorAppointmentsTable({
 
   // Custom wrapper to conditionally show edit action
   const handleEditClick = (appointment: IAppointment) => {
-    // Cannot change status for:
-    // 1. Canceled appointments
-    // 2. Completed appointments with prescriptions
-    if (appointment.status === AppointmentStatus.CANCELED) {
-      toast.error("Cannot change status for canceled appointments", {
-        description: "Canceled appointments are final and cannot be modified.",
-      });
-      return;
-    }
-
     if (
-      appointment.status === AppointmentStatus.COMPLETED &&
-      !!appointment.prescription
+      appointment.status === AppointmentStatus.CANCELED ||
+      appointment.status === AppointmentStatus.COMPLETED
     ) {
-      toast.error("Cannot change status once prescription is provided", {
+      toast.error("This appointment status is locked", {
         description:
-          "Appointment status is locked after prescription is created to maintain medical record integrity.",
+          "Completed and canceled appointments cannot be modified.",
       });
       return;
     }

@@ -1,7 +1,7 @@
 import DoctorPatientsTable from "@/components/modules/Doctor/DoctorPatients/DoctorPatientsTable";
 import { getDoctorPatients } from "@/services/patient/health-records.service";
 import { IPatient } from "@/types/patient.interface";
-import { Activity, FileText, Users } from "lucide-react";
+import { Activity, Users } from "lucide-react";
 
 export default async function DoctorPatientsPage() {
   const response = await getDoctorPatients();
@@ -31,7 +31,7 @@ export default async function DoctorPatientsPage() {
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:px-6"><div className="flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-teal-500" /><h2 className="font-bold text-slate-900">Appointed patients</h2></div><p className="text-sm text-slate-500">Select a patient to review demographics, health information, reports, and appointment history.</p></div>
-        <div className="overflow-x-auto"><DoctorPatientsTable patients={patients} /></div>
+        <DoctorPatientsTable patients={patients} />
       </section>
     </div>
   );
