@@ -9,9 +9,6 @@ import { getSpecialities } from "@/services/admin/specialitiesManagement";
 import { ArrowDown, Stethoscope } from "lucide-react";
 import { Suspense } from "react";
 
-// ISR: Revalidate every 10 minutes for doctor listings
-export const revalidate = 600;
-
 const ConsultationPage = async ({
   searchParams,
 }: {
@@ -22,7 +19,7 @@ const ConsultationPage = async ({
 
   // Fetch doctors and specialties in parallel
   const [doctorsResponse, specialtiesResponse] = await Promise.all([
-    getDoctors(queryString),
+    getDoctors(queryString, "no-store"),
     getSpecialities(),
   ]);
 

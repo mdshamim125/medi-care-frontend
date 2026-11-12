@@ -2,7 +2,7 @@
 "use server"
 
 import { serverFetch } from "@/lib/server-fetch";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 /**
  * GET ALL APPOINTMENTS
@@ -63,6 +63,7 @@ export async function changeAppointmentStatus(id: string, status: string) {
             revalidateTag('doctor-dashboard-meta', { expire: 0 });
             revalidateTag('patient-dashboard-meta', { expire: 0 });
             revalidateTag('dashboard-meta', { expire: 0 });
+            revalidatePath("/consultation");
         }
         return result;
     } catch (error: any) {
