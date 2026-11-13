@@ -15,8 +15,6 @@ export default async function AppointmentDetailPage({
   const { id } = await params;
 
   const response = await getAppointmentById(id);
-  console.log({ response });
-  
 
   if (!response?.success || !response?.data) {
     notFound();

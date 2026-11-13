@@ -93,30 +93,14 @@ export async function getMyAppointments(queryString?: string) {
 
 export async function getAppointmentById(appointmentId: string) {
     try {
-        const response = await serverFetch.get('/appointment/my-appointment', {
-            next: {
-                tags: ["my-appointments", `appointment-${appointmentId}`],
-                revalidate: 180,
-            },
-        });
+        const response = await serverFetch.get(
+            `/appointment/my-appointment/${encodeURIComponent(appointmentId)}`,
+            { cache: "no-store" },
+        );
         const result = await response.json();
 
-        if (result.success && result.data) {
-            // Find the appointment by ID from the list
-            const appointment = result.data.find((apt: any) => apt.id === appointmentId);
-
-            if (appointment) {
-                return {
-                    success: true,
-                    data: appointment,
-                };
-            } else {
-                return {
-                    success: false,
-                    data: null,
-                    message: "Appointment not found",
-                };
-            }
+        if (response.ok && result.success && result.data) {
+            return result;
         }
 
         return {

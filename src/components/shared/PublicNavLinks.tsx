@@ -29,14 +29,18 @@ const PublicNavLinks = ({ items, mobile = false }: PublicNavLinksProps) => {
             <Link
               key={item.label}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex min-h-11 items-center justify-between rounded-xl px-3.5 text-sm font-semibold transition-all",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-foreground hover:bg-accent",
+                  ? "bg-primary/10 text-primary ring-1 ring-primary/15"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               {item.label}
+              {isActive && (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              )}
             </Link>
           );
         }
@@ -45,17 +49,15 @@ const PublicNavLinks = ({ items, mobile = false }: PublicNavLinksProps) => {
           <Link
             key={item.label}
             href={item.href}
+            aria-current={isActive ? "page" : undefined}
             className={cn(
-              "relative rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
+              "rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-all duration-200",
               isActive
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {item.label}
-            {isActive && (
-              <span className="absolute inset-x-3 -bottom-[1.15rem] h-0.5 rounded-full bg-primary" />
-            )}
           </Link>
         );
       })}

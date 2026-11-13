@@ -1,136 +1,129 @@
 import Link from 'next/link';
-import { Activity } from 'lucide-react';
+import { Activity, ArrowRight, Mail, MapPin } from 'lucide-react';
+
+const footerLinkClass =
+  'inline-flex items-center text-muted-foreground transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 function PublicFooter() {
   return (
-    <footer className="border-t bg-background">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="space-y-4">
+    <footer className="border-t border-border bg-background text-foreground">
+      <div className="mx-auto max-w-7xl px-5 sm:px-7 lg:px-8">
+        <div className="grid gap-12 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.8fr_1fr] lg:gap-10 lg:py-[4.5rem]">
+          <div className="max-w-sm">
             <Link
               href="/"
-              className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80"
+              className="group inline-flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                <Activity className="h-4 w-4" />
-              </div>
-              <span className="text-lg font-semibold tracking-tight text-foreground">
-                Medi-Care
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-black/10 ring-1 ring-border/70 transition-transform group-hover:scale-[1.03]">
+                <Activity className="h-5 w-5" strokeWidth={2.2} />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-lg font-bold leading-tight tracking-tight">
+                  Medi-Care
+                </span>
+                <span className="mt-1 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-primary/75">
+                  Care that connects
+                </span>
               </span>
             </Link>
-            <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-5 max-w-xs text-sm leading-6 text-muted-foreground">
               Your health is our priority. We deliver trusted medical services
               with compassion and excellence.
             </p>
+            <Link
+              href="/consultation"
+              className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Find a doctor
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-wide text-foreground">
-              Quick Links
-            </h3>
-            <ul className="space-y-3 text-sm">
+          <nav aria-label="Quick links">
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-foreground">
+              Explore
+            </h2>
+            <ul className="mt-5 space-y-3.5 text-sm">
               <li>
-                <Link
-                  href="/"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/" className={footerLinkClass}>
                   Home
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/about"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/about" className={footerLinkClass}>
                   About Us
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/services"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/services" className={footerLinkClass}>
                   Services
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/contact"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/contact" className={footerLinkClass}>
                   Contact
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
-          {/* Support */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-wide text-foreground">
+          <nav aria-label="Support links">
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-foreground">
               Support
-            </h3>
-            <ul className="space-y-3 text-sm">
+            </h2>
+            <ul className="mt-5 space-y-3.5 text-sm">
               <li>
-                <Link
-                  href="/faq"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/faq" className={footerLinkClass}>
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/help"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/help" className={footerLinkClass}>
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/terms"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/terms" className={footerLinkClass}>
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/privacy"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
+                <Link href="/privacy" className={footerLinkClass}>
                   Privacy Policy
                 </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
-          {/* Contact */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-wide text-foreground">
-              Contact Us
-            </h3>
-            <address className="not-italic space-y-2 text-sm text-muted-foreground">
-              <p>123 Medical Lane</p>
-              <p>Health City, HC 12345</p>
-              <p>
-                <a
-                  href="mailto:contact@medicare.com"
-                  className="transition-colors hover:text-foreground"
-                >
-                  contact@medicare.com
-                </a>
+            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-foreground">
+              Get in touch
+            </h2>
+            <address className="mt-5 space-y-4 text-sm not-italic leading-6 text-muted-foreground">
+              <p className="flex items-start gap-3">
+                <MapPin className="mt-1 h-4 w-4 shrink-0 text-primary" />
+                <span>
+                  123 Medical Lane
+                  <br />
+                  Health City, HC 12345
+                </span>
               </p>
+              <a
+                href="mailto:contact@medicare.com"
+                className="group inline-flex items-center gap-3 transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Mail className="h-4 w-4 shrink-0 text-primary" />
+                contact@medicare.com
+              </a>
             </address>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 text-sm text-muted-foreground sm:flex-row">
-          <p>&copy; {new Date().getFullYear()} Medi-Care. All rights reserved.</p>
-          <p className="text-xs">
+        <div className="flex flex-col gap-3 border-t border-border py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-sm">
+          <p>
+            &copy; {new Date().getFullYear()} Medi-Care. All rights reserved.
+          </p>
+          <p>
             Built with care for better health outcomes.
           </p>
         </div>

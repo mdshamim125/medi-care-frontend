@@ -6,7 +6,7 @@ import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { queryStringFormatter } from "@/lib/formatters";
 import { getDoctors } from "@/services/admin/doctorManagement";
 import { getSpecialities } from "@/services/admin/specialitiesManagement";
-import { ArrowDown, Stethoscope } from "lucide-react";
+import { Stethoscope } from "lucide-react";
 import { Suspense } from "react";
 
 const ConsultationPage = async ({
@@ -46,7 +46,6 @@ const ConsultationPage = async ({
               professionals
             </p>
           </div>
-          <ArrowDown className="absolute -bottom-8 right-8 h-36 w-36 rotate-[-35deg] text-primary/10 md:right-20" />
         </section>
 
         <AIDoctorSuggestion />
