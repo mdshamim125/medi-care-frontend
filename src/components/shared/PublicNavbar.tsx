@@ -1,6 +1,6 @@
 import { getCookie } from "@/services/auth/tokenHandlers";
 import { getUserInfo } from "@/services/auth/getUserInfo";
-import { Activity, Menu } from "lucide-react";
+import { Activity, ArrowRight, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -46,84 +46,107 @@ const PublicNavbar = async () => {
   const initials = userInfo?.name?.charAt(0).toUpperCase() || "U";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
+    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/90 shadow-[0_8px_24px_-22px_rgba(15,23,42,0.5)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-6 px-5 sm:px-7 lg:px-8">
         <Link
           href="/"
-          className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+          className="group flex shrink-0 items-center gap-3 transition-opacity hover:opacity-85"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-            <Activity className="h-4 w-4" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/10 transition-transform group-hover:scale-[1.03]">
+            <Activity className="h-5 w-5" strokeWidth={2.2} />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            Medi-Care
+          <span className="flex flex-col">
+            <span className="text-[17px] font-bold leading-tight tracking-tight text-foreground">
+              Medi-Care
+            </span>
+            <span className="mt-1 text-[10px] font-semibold uppercase leading-none tracking-[0.16em] text-muted-foreground">
+              Care that connects
+            </span>
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav
+          aria-label="Main navigation"
+          className="hidden items-center gap-1 rounded-2xl border border-border/60 bg-card/75 p-1.5 shadow-sm lg:flex"
+        >
           <PublicNavLinks items={navItems} />
         </nav>
 
-        {/* Desktop Account */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-3 lg:flex">
           {userInfo ? (
-            <UserDropdown userInfo={userInfo} />
+            <>
+              <div className="hidden text-right xl:block">
+                <p className="max-w-36 truncate text-sm font-semibold leading-tight text-foreground">
+                  {userInfo.name}
+                </p>
+                <p className="mt-1 text-[11px] font-medium capitalize leading-tight text-muted-foreground">
+                  {userInfo.role.toLowerCase().replace("_", " ")}
+                </p>
+              </div>
+              <UserDropdown userInfo={userInfo} />
+            </>
           ) : (
-            <Link href="/login">
-              <Button size="sm" className="rounded-lg px-5 font-medium shadow-sm">
-                Login
+            <Link href="/login" className="inline-flex">
+              <Button className="h-11 gap-2 rounded-xl px-5 font-semibold shadow-md shadow-primary/15 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20">
+                Sign in
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           )}
         </div>
 
-        {/* Mobile Menu */}
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 rounded-lg"
+                className="h-11 w-11 rounded-xl border border-border/70 bg-card shadow-sm transition-colors hover:border-primary/30 hover:bg-primary/5"
                 aria-label="Open navigation menu"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-5 w-5 text-foreground" />
               </Button>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-[300px] p-0 sm:w-[340px]">
+            <SheetContent
+              side="right"
+              className="w-[min(88vw,360px)] border-l border-border/70 bg-background p-0 shadow-2xl"
+            >
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
 
               <div className="flex h-full flex-col">
-                {/* Mobile Header */}
-                <div className="flex h-16 items-center border-b px-5">
-                  <Link href="/" className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                      <Activity className="h-4 w-4" />
+                <div className="flex h-[76px] items-center border-b border-border/70 px-5">
+                  <Link href="/" className="group flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+                      <Activity className="h-[18px] w-[18px]" />
                     </div>
-                    <span className="text-lg font-semibold tracking-tight">
-                      Medi-Care
+                    <span className="flex flex-col">
+                      <span className="text-base font-bold tracking-tight">
+                        Medi-Care
+                      </span>
+                      <span className="mt-1 text-[10px] font-semibold uppercase leading-none tracking-[0.15em] text-muted-foreground">
+                        Care that connects
+                      </span>
                     </span>
                   </Link>
                 </div>
 
-                {/* Mobile Navigation */}
-                <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
-                  <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                <nav
+                  aria-label="Mobile navigation"
+                  className="flex-1 space-y-1 overflow-y-auto px-4 py-6"
+                >
+                  <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Navigation
                   </p>
 
                   <PublicNavLinks items={navItems} mobile />
                 </nav>
 
-                {/* Mobile Account */}
-                <div className="border-t bg-muted/30 p-4">
+                <div className="border-t border-border/70 bg-muted/30 p-5">
                   {userInfo ? (
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm">
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border/60">
+                      <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm">
+                        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border border-border/60">
                           {profilePhoto ? (
                             <Image
                               src={profilePhoto}
@@ -143,10 +166,10 @@ const PublicNavbar = async () => {
                           <p className="truncate text-sm font-semibold leading-tight">
                             {userInfo.name}
                           </p>
-                          <p className="truncate text-xs text-muted-foreground mt-0.5">
+                          <p className="mt-1 truncate text-xs text-muted-foreground">
                             {userInfo.email}
                           </p>
-                          <p className="mt-0.5 text-[11px] font-medium capitalize text-primary">
+                          <p className="mt-1 text-[10px] font-semibold capitalize tracking-wide text-primary">
                             {userInfo.role.toLowerCase().replace("_", " ")}
                           </p>
                         </div>
@@ -156,7 +179,7 @@ const PublicNavbar = async () => {
                         <Link href="/my-profile">
                           <Button
                             variant="outline"
-                            className="w-full justify-start rounded-lg"
+                            className="h-10 w-full justify-start rounded-xl"
                           >
                             My Profile
                           </Button>
@@ -165,7 +188,7 @@ const PublicNavbar = async () => {
                         <Link href="/change-password">
                           <Button
                             variant="outline"
-                            className="w-full justify-start rounded-lg"
+                            className="h-10 w-full justify-start rounded-xl"
                           >
                             Change Password
                           </Button>
@@ -176,8 +199,9 @@ const PublicNavbar = async () => {
                     </div>
                   ) : (
                     <Link href="/login" className="block">
-                      <Button className="w-full rounded-lg font-medium">
-                        Login
+                      <Button className="h-11 w-full justify-between rounded-xl px-4 font-semibold">
+                        Sign in
+                        <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
                   )}

@@ -3,7 +3,7 @@ import PublicNavbar from "@/components/shared/PublicNavbar";
 
 const CommonLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="container mx-auto">
+    <div className="min-h-screen">
       <PublicNavbar />
 
       <main>{children}</main>
