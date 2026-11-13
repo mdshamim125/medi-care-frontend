@@ -53,7 +53,7 @@ const DoctorProfileContent = ({ doctor }: DoctorProfileContentProps) => {
             <div className="min-w-0 flex-1 space-y-3 pb-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-                  Dr. {doctor.name}
+                  {doctor.name}
                 </h1>
                 <ShieldCheck className="h-5 w-5 text-primary" />
               </div>

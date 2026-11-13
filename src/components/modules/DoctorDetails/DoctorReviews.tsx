@@ -32,7 +32,7 @@ export default function DoctorReviews({ doctorId }: DoctorReviewsProps) {
     const loadReviews = async () => {
       try {
         setLoading(true);
-        const response = await getReviews(`?doctorId=${doctorId}&limit=10`);
+        const response = await getReviews(`doctorId=${doctorId}&limit=10`);
 
         if (response.success && response.data) {
           setReviews(response.data);
