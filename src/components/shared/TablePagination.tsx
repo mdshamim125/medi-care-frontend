@@ -15,9 +15,14 @@ import {
 interface TablePaginationProps {
   currentPage: number;
   totalPages: number;
+  defaultLimit?: number;
 }
 
-const TablePagination = ({ currentPage, totalPages }: TablePaginationProps) => {
+const TablePagination = ({
+  currentPage,
+  totalPages,
+  defaultLimit = 6,
+}: TablePaginationProps) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
@@ -41,14 +46,14 @@ const TablePagination = ({ currentPage, totalPages }: TablePaginationProps) => {
     });
   };
 
-  const currentLimit = searchParams.get("limit") || "10";
+  const currentLimit = searchParams.get("limit") || String(defaultLimit);
 
   // if (totalPages <= 1) {
   //   return null;
   // }
 
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex flex-wrap items-center justify-center gap-2">
       <Button
         variant="outline"
         size="sm"
@@ -117,6 +122,7 @@ const TablePagination = ({ currentPage, totalPages }: TablePaginationProps) => {
             <SelectItem value="3">3</SelectItem>
             <SelectItem value="6">6</SelectItem>
             <SelectItem value="9">9</SelectItem>
+            <SelectItem value="10">10</SelectItem>
             <SelectItem value="12">12</SelectItem>
             <SelectItem value="15">15</SelectItem>
             <SelectItem value="18">18</SelectItem>

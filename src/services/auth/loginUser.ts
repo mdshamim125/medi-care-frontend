@@ -71,20 +71,26 @@ export const loginUser = async (
     }
 
     await setCookie("accessToken", accessTokenObject.accessToken, {
-      secure: true,
+      secure: process.env.COOKIE_SECURE === "true",
       httpOnly: true,
       maxAge: parseInt(accessTokenObject["Max-Age"]) || 1000 * 60 * 60,
       path: accessTokenObject.Path || "/",
-      sameSite: accessTokenObject["SameSite"] || "none",
+      sameSite:
+        process.env.COOKIE_SECURE === "true"
+          ? accessTokenObject["SameSite"] || "none"
+          : "lax",
     });
 
     await setCookie("refreshToken", refreshTokenObject.refreshToken, {
-      secure: true,
+      secure: process.env.COOKIE_SECURE === "true",
       httpOnly: true,
       maxAge:
         parseInt(refreshTokenObject["Max-Age"]) || 1000 * 60 * 60 * 24 * 90,
       path: refreshTokenObject.Path || "/",
-      sameSite: refreshTokenObject["SameSite"] || "none",
+      sameSite:
+        process.env.COOKIE_SECURE === "true"
+          ? refreshTokenObject["SameSite"] || "none"
+          : "lax",
     });
     const verifiedToken: JwtPayload | string = jwt.verify(
       accessTokenObject.accessToken,

@@ -63,6 +63,9 @@ export default function BookAppointmentDialog({
   };
 
   const groupedSchedules = groupSchedulesByDate();
+  const availableScheduleCount = doctorSchedules.filter(
+    (schedule) => !schedule.isBooked,
+  ).length;
 
   const hasSchedulesWithoutData =
     doctorSchedules.length > 0 && groupedSchedules.length === 0;
@@ -153,12 +156,29 @@ export default function BookAppointmentDialog({
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Choose a date and time that works for you.
               </p>
+              <div
+                className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground"
+                aria-label="Time slot status legend"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3.5 w-3.5 rounded bg-background ring-1 ring-inset ring-slate-400" />
+                  Available
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3.5 w-3.5 rounded bg-slate-700" />
+                  Selected
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-3.5 w-3.5 rounded bg-orange-500" />
+                  Booked
+                </span>
+              </div>
             </div>
 
-            {doctorSchedules.length > 0 && groupedSchedules.length > 0 && (
+            {groupedSchedules.length > 0 && (
               <span className="hidden rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground sm:block">
-                {doctorSchedules.length}{" "}
-                {doctorSchedules.length === 1 ? "slot" : "slots"} available
+                {availableScheduleCount}{" "}
+                {availableScheduleCount === 1 ? "slot" : "slots"} available
               </span>
             )}
           </div>
@@ -201,72 +221,92 @@ export default function BookAppointmentDialog({
           ) : (
             <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
               <div className="space-y-6 pb-6">
-                {groupedSchedules.map(([date, dateSchedules]) => (
-                  <div key={date}>
-                    {/* Date Header */}
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Calendar className="h-4 w-4" />
+                {groupedSchedules.map(([date, dateSchedules]) => {
+                  const availableDateScheduleCount = dateSchedules.filter(
+                    (schedule) => !schedule.isBooked,
+                  ).length;
+
+                  return (
+                    <div key={date}>
+                      {/* Date Header */}
+                      <div className="mb-3 flex items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Calendar className="h-4 w-4" />
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {format(new Date(date), "EEEE, MMMM d, yyyy")}
+                          </p>
+
+                          <p className="text-xs text-muted-foreground">
+                            {availableDateScheduleCount}{" "}
+                            {availableDateScheduleCount === 1
+                              ? "available time"
+                              : "available times"}
+                          </p>
+                        </div>
                       </div>
 
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {format(new Date(date), "EEEE, MMMM d, yyyy")}
-                        </p>
+                      {/* Time Slots */}
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {dateSchedules.map((schedule) => {
+                          const startTime = schedule.schedule?.startDateTime
+                            ? new Date(schedule.schedule.startDateTime)
+                            : null;
 
-                        <p className="text-xs text-muted-foreground">
-                          {dateSchedules.length}{" "}
-                          {dateSchedules.length === 1
-                            ? "available time"
-                            : "available times"}
-                        </p>
-                      </div>
-                    </div>
+                          const isSelected =
+                            selectedSchedule?.scheduleId ===
+                            schedule.scheduleId;
+                          const isBooked = schedule.isBooked;
 
-                    {/* Time Slots */}
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {dateSchedules.map((schedule) => {
-                        const startTime = schedule.schedule?.startDateTime
-                          ? new Date(schedule.schedule.startDateTime)
-                          : null;
-
-                        const isSelected =
-                          selectedSchedule?.scheduleId === schedule.scheduleId;
-
-                        return (
-                          <Button
-                            key={schedule.scheduleId}
-                            type="button"
-                            variant={isSelected ? "default" : "outline"}
-                            onClick={() => setSelectedSchedule(schedule)}
-                            className={`
-                              h-11
-                              justify-start
-                              rounded-lg
-                              px-3
-                              transition-all
-                              ${
-                                isSelected
-                                  ? "border-primary shadow-sm"
-                                  : "hover:border-primary/50 hover:bg-primary/5"
+                          return (
+                            <Button
+                              key={schedule.scheduleId}
+                              type="button"
+                              variant="outline"
+                              disabled={isBooked}
+                              aria-label={
+                                isBooked
+                                  ? `${startTime ? format(startTime, "h:mm a") : "Time slot"}, booked`
+                                  : undefined
                               }
-                            `}
-                          >
-                            <Clock className="mr-2 h-4 w-4 shrink-0" />
+                              onClick={() => setSelectedSchedule(schedule)}
+                              className={`
+                                h-11
+                                justify-start
+                                rounded-lg
+                                px-3
+                                transition-all
+                                disabled:pointer-events-none
+                                disabled:opacity-100
+                                ${
+                                  isBooked
+                                    ? "cursor-not-allowed border-orange-500 bg-orange-500 text-white hover:bg-orange-600 hover:text-white"
+                                    : isSelected
+                                      ? "border-slate-700 bg-slate-700 text-white shadow-sm hover:bg-slate-800 hover:text-white"
+                                      : "border-slate-300 bg-background text-foreground hover:border-slate-500 hover:bg-slate-50"
+                                }
+                              `}
+                            >
+                              <Clock className="mr-2 h-4 w-4 shrink-0" />
 
-                            <span className="text-sm font-medium">
-                              {startTime ? format(startTime, "h:mm a") : "N/A"}
-                            </span>
+                              <span className="text-sm font-medium">
+                                {startTime
+                                  ? format(startTime, "h:mm a")
+                                  : "N/A"}
+                              </span>
 
-                            {isSelected && (
-                              <Check className="ml-auto h-4 w-4" />
-                            )}
-                          </Button>
-                        );
-                      })}
+                              {!isBooked && isSelected ? (
+                                <Check className="ml-auto h-4 w-4" />
+                              ) : null}
+                            </Button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

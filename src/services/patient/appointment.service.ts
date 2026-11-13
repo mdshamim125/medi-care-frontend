@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { serverFetch } from "@/lib/server-fetch";
 import { IAppointmentFormData } from "@/types/appointments.interface";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function createAppointment(data: IAppointmentFormData) {
     try {
@@ -20,6 +20,7 @@ export async function createAppointment(data: IAppointmentFormData) {
             revalidateTag('patient-dashboard-meta', { expire: 0 });
             revalidateTag('admin-dashboard-meta', { expire: 0 });
             revalidateTag('doctor-dashboard-meta', { expire: 0 });
+            revalidatePath("/consultation");
         }
 
         return result;
@@ -51,6 +52,7 @@ export async function createAppointmentWithPayLater(data: IAppointmentFormData) 
             revalidateTag('patient-dashboard-meta', { expire: 0 });
             revalidateTag('admin-dashboard-meta', { expire: 0 });
             revalidateTag('doctor-dashboard-meta', { expire: 0 });
+            revalidatePath("/consultation");
         }
         return result;
     } catch (error: any) {
@@ -67,13 +69,12 @@ export async function createAppointmentWithPayLater(data: IAppointmentFormData) 
 
 export async function getMyAppointments(queryString?: string) {
     try {
+        const query = queryString
+            ? `${queryString.startsWith("?") ? "" : "?"}${queryString}`
+            : "?sortBy=createdAt&sortOrder=desc";
         const response = await serverFetch.get(
-            `/appointment/my-appointment${queryString ? `?${queryString}` : "?sortBy=createdAt&sortOrder=desc"}`, {
-            next: {
-                tags: ["my-appointments"],
-                revalidate: 120,
-            },
-        }
+            `/appointment/my-appointment${query}`,
+            { cache: "no-store" },
         );
         const result = await response.json();
         return result;
@@ -161,6 +162,7 @@ export async function changeAppointmentStatus(
             // Update dashboard for immediate status reflection
             revalidateTag('patient-dashboard-meta', { expire: 0 });
             revalidateTag('dashboard-meta', { expire: 0 });
+            revalidatePath("/consultation");
         }
         return result;
     } catch (error: any) {

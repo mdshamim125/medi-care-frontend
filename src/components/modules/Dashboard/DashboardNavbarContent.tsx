@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NavSection } from "@/types/dashboard.interface";
 import { UserInfo } from "@/types/user.interface";
-import { Bell, Menu, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Activity, Menu } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import DashboardMobileSidebar from "./DashboardMobileSidebar";
 import UserDropdown from "./UserDropdown";
 
@@ -21,59 +21,48 @@ const DashboardNavbarContent = ({
   dashboardHome,
 }: DashboardNavbarContentProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    const checkSmallerScreen = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkSmallerScreen();
-    window.addEventListener("resize", checkSmallerScreen);
-
-    return () => {
-      window.removeEventListener("resize", checkSmallerScreen);
-    };
-  }, []);
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-      <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
-        {/* Mobile Menu Toggle */}
-        <Sheet open={isMobile && isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="outline" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          {/* Hide the overlay on medium and larger screens */}
-          <SheetContent side="left" className="w-64 p-0">
-            <DashboardMobileSidebar
-              userInfo={userInfo}
-              navItems={navItems || []}
-              dashboardHome={dashboardHome || ""}
-            />
-          </SheetContent>
-        </Sheet>
+    <header className="z-40 shrink-0 border-b bg-background/95 backdrop-blur lg:hidden">
+      <div className="flex h-14 items-center justify-between gap-3 px-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                aria-label="Open dashboard navigation"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-72 max-w-[calc(100vw-2rem)] p-0"
+            >
+              <DashboardMobileSidebar
+                userInfo={userInfo}
+                navItems={navItems || []}
+                dashboardHome={dashboardHome || ""}
+                onNavigate={() => setIsOpen(false)}
+              />
+            </SheetContent>
+          </Sheet>
 
-        {/* Search Bar */}
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input type="search" placeholder="Search..." className="pl-9" />
-          </div>
+          <Link
+            href={dashboardHome || "/"}
+            className="flex min-w-0 items-center gap-2 font-semibold tracking-tight text-foreground"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Activity className="h-4 w-4" />
+            </span>
+            <span className="truncate">Medi-Care</span>
+          </Link>
         </div>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="outline" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
-          </Button>
-
-          {/* User Dropdown */}
-          <UserDropdown userInfo={userInfo} />
-        </div>
+        <UserDropdown userInfo={userInfo} />
       </div>
     </header>
   );

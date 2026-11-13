@@ -8,6 +8,9 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import ClearFiltersButton from "@/components/shared/ClearFiltersButton";
+import SearchFilter from "@/components/shared/SearchFilter";
+import SelectFilter from "@/components/shared/SelectFilter";
 import { IPrescription } from "@/types/prescription.interface";
 import { format } from "date-fns";
 import { jsPDF } from "jspdf";
@@ -23,10 +26,12 @@ import Link from "next/link";
 
 interface PatientPrescriptionsListProps {
   prescriptions: IPrescription[];
+  hasFilters: boolean;
 }
 
 export default function PatientPrescriptionsList({
   prescriptions = [],
+  hasFilters,
 }: PatientPrescriptionsListProps) {
   const sortedPrescriptions = [...prescriptions].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -392,27 +397,32 @@ export default function PatientPrescriptionsList({
     doc.save(fileName);
   };
 
-  // ── Empty State ─────────────────────────────────────────────
-  if (prescriptions.length === 0) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-            <FileText className="h-8 w-8 text-muted-foreground" />
+  return (
+    <div className="space-y-5">
+      <Card className="border-slate-200/80 shadow-sm">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:p-5">
+          <div className="min-w-0 flex-1">
+            <SearchFilter
+              paramName="searchTerm"
+              placeholder="Search by health issue..."
+            />
           </div>
-          <h3 className="text-lg font-semibold">No prescriptions yet</h3>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Prescriptions from your completed appointments will appear here.
-          </p>
+          <SelectFilter
+            paramName="followUp"
+            placeholder="Follow-up schedule"
+            defaultValue="All follow-ups"
+            options={[
+              { label: "Follow-up scheduled", value: "scheduled" },
+              { label: "No follow-up", value: "none" },
+            ]}
+          />
+          <ClearFiltersButton />
         </CardContent>
       </Card>
-    );
-  }
 
-  // ── Prescription Cards ──────────────────────────────────────
-  return (
-    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-      {sortedPrescriptions.map((prescription) => (
+      {prescriptions.length > 0 ? (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {sortedPrescriptions.map((prescription) => (
         <Card
           key={prescription.id}
           className="flex flex-col overflow-hidden transition-all hover:shadow-md"
@@ -557,7 +567,30 @@ export default function PatientPrescriptionsList({
             </div>
           </CardFooter>
         </Card>
-      ))}
+          ))}
+        </div>
+      ) : (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <FileText className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">
+              {hasFilters ? "No matching prescriptions" : "No prescriptions yet"}
+            </h3>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+              {hasFilters
+                ? "Try adjusting your search or follow-up filter."
+                : "Prescriptions from your completed appointments will appear here."}
+            </p>
+            {!hasFilters && (
+              <Button className="mt-6" variant="outline" asChild>
+                <Link href="/dashboard/my-appointments">View appointments</Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

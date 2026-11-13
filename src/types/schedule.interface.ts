@@ -17,6 +17,7 @@ export interface IDoctorSchedule {
   scheduleId: string;
   doctorId: string;
   isBooked: boolean;
+  appointmentStatus?: "SCHEDULED" | "INPROGRESS" | "COMPLETED" | null;
   appointmentId?: string;
   createdAt: string;
   updatedAt: string;

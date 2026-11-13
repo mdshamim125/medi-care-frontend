@@ -3,11 +3,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import ClearFiltersButton from "@/components/shared/ClearFiltersButton";
+import SearchFilter from "@/components/shared/SearchFilter";
+import SelectFilter from "@/components/shared/SelectFilter";
 import {
   AppointmentStatus,
   IAppointment,
   PaymentStatus,
 } from "@/types/appointments.interface";
+import { initiatePayment } from "@/services/payment/payment.service";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -25,10 +29,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import AppointmentCountdown from "./AppointmentCountdown";
-import { initiatePayment } from "@/services/payment/payment.service";
 
 interface AppointmentsListProps {
   appointments: IAppointment[];
+  hasFilters: boolean;
 }
 
 const statusConfig: Record<
@@ -57,7 +61,10 @@ const statusConfig: Record<
   },
 };
 
-const AppointmentsList = ({ appointments }: AppointmentsListProps) => {
+const AppointmentsList = ({
+  appointments,
+  hasFilters,
+}: AppointmentsListProps) => {
   const [processingPaymentId, setProcessingPaymentId] = useState<string | null>(
     null,
   );
@@ -85,40 +92,54 @@ const AppointmentsList = ({ appointments }: AppointmentsListProps) => {
     }
   };
 
-  if (appointments.length === 0) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-            <Calendar className="h-7 w-7 text-muted-foreground" />
+  return (
+    <div className="space-y-5">
+      <Card className="border-slate-200/80 shadow-sm">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:p-5">
+          <div className="min-w-0 flex-1">
+            <SearchFilter
+              paramName="searchTerm"
+              placeholder="Search by doctor or specialty..."
+            />
           </div>
-          <h3 className="text-lg font-semibold">No appointments yet</h3>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            You haven&apos;t booked any appointments. Browse our doctors and
-            schedule your first consultation.
-          </p>
-          <Button className="mt-6" asChild>
-            <Link href="/consultation">Find a Doctor</Link>
-          </Button>
+          <SelectFilter
+            paramName="status"
+            placeholder="Appointment status"
+            defaultValue="All appointment statuses"
+            options={[
+              { label: "Scheduled", value: AppointmentStatus.SCHEDULED },
+              { label: "In progress", value: AppointmentStatus.INPROGRESS },
+              { label: "Completed", value: AppointmentStatus.COMPLETED },
+              { label: "Canceled", value: AppointmentStatus.CANCELED },
+            ]}
+          />
+          <SelectFilter
+            paramName="paymentStatus"
+            placeholder="Payment status"
+            defaultValue="All payment statuses"
+            options={[
+              { label: "Paid", value: PaymentStatus.PAID },
+              { label: "Payment pending", value: PaymentStatus.UNPAID },
+            ]}
+          />
+          <ClearFiltersButton />
         </CardContent>
       </Card>
-    );
-  }
 
-  return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-      {appointments.map((appointment) => {
+      {appointments.length > 0 ? (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {appointments.map((appointment) => {
         const status = statusConfig[appointment.status];
         const isUnpaid =
           appointment.paymentStatus === PaymentStatus.UNPAID &&
           appointment.status !== AppointmentStatus.CANCELED;
         const isProcessing = processingPaymentId === appointment.id;
 
-        return (
-          <Card
-            key={appointment.id}
-            className="group flex flex-col overflow-hidden transition-all hover:shadow-md"
-          >
+            return (
+              <Card
+                key={appointment.id}
+                className="group flex flex-col overflow-hidden transition-all hover:shadow-md"
+              >
             <CardContent className="flex flex-1 flex-col space-y-4 pt-5">
               {/* Status row */}
               <div className="flex flex-wrap items-center gap-2">
@@ -308,9 +329,32 @@ const AppointmentsList = ({ appointments }: AppointmentsListProps) => {
                 </Button>
               )}
             </CardFooter>
-          </Card>
-        );
-      })}
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <Calendar className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">
+              {hasFilters ? "No matching appointments" : "No appointments yet"}
+            </h3>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+              {hasFilters
+                ? "Try adjusting your search or filters to find an appointment."
+                : "Your booked appointments will appear here. Browse our doctors to schedule your first consultation."}
+            </p>
+            {!hasFilters && (
+              <Button className="mt-6" asChild>
+                <Link href="/consultation">Find a Doctor</Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

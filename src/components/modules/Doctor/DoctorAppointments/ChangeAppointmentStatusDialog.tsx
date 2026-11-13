@@ -73,8 +73,13 @@ export default function ChangeAppointmentStatusDialog({
   const currentStatus = statusOptions.find(
     (opt) => opt.value === appointment.status
   );
+  const isStatusLocked =
+    appointment.status === AppointmentStatus.COMPLETED ||
+    appointment.status === AppointmentStatus.CANCELED;
 
   const handleSubmit = async () => {
+    if (isStatusLocked) return;
+
     if (newStatus === appointment.status) {
       toast.info("No changes made");
       onClose();
@@ -154,7 +159,7 @@ export default function ChangeAppointmentStatusDialog({
               onValueChange={(value) =>
                 setNewStatus(value as AppointmentStatus)
               }
-              disabled={isSubmitting}
+              disabled={isSubmitting || isStatusLocked}
             >
               <SelectTrigger id="status" className="w-full">
                 <SelectValue placeholder="Select status" />
@@ -169,6 +174,16 @@ export default function ChangeAppointmentStatusDialog({
             </Select>
           </div>
 
+          {isStatusLocked ? (
+            <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-3.5">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                This appointment is {currentStatus?.label.toLowerCase()} and
+                its status can no longer be changed.
+              </p>
+            </div>
+          ) : (
+            <>
           {/* Warning for Completion */}
           {newStatus === AppointmentStatus.COMPLETED &&
             !appointment.prescription && (
@@ -180,6 +195,8 @@ export default function ChangeAppointmentStatusDialog({
                 </p>
               </div>
             )}
+            </>
+          )}
         </div>
 
                 <DialogFooter className="gap-2 sm:gap-0">
@@ -191,12 +208,17 @@ export default function ChangeAppointmentStatusDialog({
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || isStatusLocked}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Updating...
               </>
+            ) : isStatusLocked ? (
+              "Status locked"
             ) : (
               "Confirm Change"
             )}

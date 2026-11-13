@@ -25,7 +25,7 @@ const DashboardSidebarContent = ({
   const pathname = usePathname();
 
   return (
-    <div className="hidden h-full min-h-0 w-64 flex-col border-r bg-card md:flex">
+    <div className="hidden h-full min-h-0 w-64 shrink-0 flex-col border-r bg-card lg:flex">
       {/* Brand */}
       <div className="flex h-16 shrink-0 items-center gap-2.5 border-b px-5">
         <Link

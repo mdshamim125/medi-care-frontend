@@ -15,12 +15,14 @@ interface DashboardMobileSidebarContentProps {
   userInfo: UserInfo;
   navItems: NavSection[];
   dashboardHome: string;
+  onNavigate?: () => void;
 }
 
 const DashboardMobileSidebar = ({
   userInfo,
   navItems,
   dashboardHome,
+  onNavigate,
 }: DashboardMobileSidebarContentProps) => {
   const pathname = usePathname();
   return (
@@ -45,18 +47,22 @@ const DashboardMobileSidebar = ({
               )}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== dashboardHome &&
+                      pathname.startsWith(item.href));
                   const Icon = getIconComponent(item.icon);
 
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={onNavigate}
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                         isActive
                           ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                       )}
                     >
                       <Icon className="h-4 w-4" />
