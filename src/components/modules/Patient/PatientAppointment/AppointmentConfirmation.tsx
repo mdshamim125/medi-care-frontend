@@ -148,20 +148,26 @@ const AppointmentConfirmation = ({
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-7 py-2 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Confirm Appointment
-          </h1>
-          <p className="mt-1.5 text-muted-foreground">
-            Review the details below and confirm your booking
-          </p>
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Appointment booking
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Confirm appointment
+            </h1>
+            <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
+              Review your doctor and schedule details before booking.
+            </p>
+          </div>
         </div>
         <Button
           variant="outline"
-          className="w-fit gap-2"
+          className="w-fit gap-2 rounded-xl"
           onClick={() => router.back()}
           disabled={isBusy}
         >
@@ -172,19 +178,21 @@ const AppointmentConfirmation = ({
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Doctor – left */}
-        <Card className="self-start lg:col-span-3">
+        <Card className="self-start overflow-hidden rounded-2xl border-border/70 shadow-sm lg:col-span-3">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Stethoscope className="h-5 w-5 text-primary" />
-              Doctor Information
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Stethoscope className="h-4 w-4" />
+              </span>
+              Doctor information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <p className="text-2xl font-semibold tracking-tight">
+              <p className="text-2xl font-semibold tracking-tight sm:text-3xl">
                 {doctor.name}
               </p>
-              <p className="mt-1 text-muted-foreground">
+              <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
                 {doctor.designation || "Doctor"}
               </p>
             </div>
@@ -199,7 +207,11 @@ const AppointmentConfirmation = ({
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {doctor.doctorSpecialties.map((ds, idx) => (
-                        <Badge key={idx} variant="secondary">
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="rounded-full px-3 py-1"
+                        >
                           {ds.specialities?.title || "N/A"}
                         </Badge>
                       ))}
@@ -257,9 +269,14 @@ const AppointmentConfirmation = ({
 
             <Separator />
 
-            <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
-              <span className="text-sm font-medium">Consultation Fee</span>
-              <span className="text-xl font-bold text-primary">
+            <div className="flex items-center justify-between rounded-xl border border-primary/15 bg-primary/5 px-4 py-4">
+              <div>
+                <p className="text-sm font-semibold">Consultation fee</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Fee for this appointment
+                </p>
+              </div>
+              <span className="text-2xl font-bold tabular-nums text-primary">
                 ${doctor.appointmentFee}
               </span>
             </div>
@@ -268,17 +285,21 @@ const AppointmentConfirmation = ({
 
         {/* Schedule + Actions – right */}
         <div className="space-y-6 self-start lg:col-span-2">
-          <Card>
+          <Card className="rounded-2xl border-border/70 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="h-4 w-4" />
-                Schedule
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Calendar className="h-4 w-4" />
+                </span>
+                Appointment schedule
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 rounded-lg bg-muted/60 p-4">
+              <div className="space-y-4 rounded-xl border border-border/60 bg-muted/40 p-4 sm:p-5">
                 <div>
-                  <p className="text-xs text-muted-foreground">Date</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Date
+                  </p>
                   <p className="mt-1 text-lg font-semibold">
                     {format(new Date(schedule.startDateTime), "EEEE")}
                   </p>
@@ -292,8 +313,10 @@ const AppointmentConfirmation = ({
                 <div className="flex items-center gap-2.5">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Time</p>
-                    <p className="font-medium">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Time
+                    </p>
+                    <p className="mt-0.5 font-semibold tabular-nums">
                       {format(new Date(schedule.startDateTime), "h:mm a")} –{" "}
                       {format(new Date(schedule.endDateTime), "h:mm a")}
                     </p>
@@ -304,9 +327,11 @@ const AppointmentConfirmation = ({
           </Card>
 
           {/* Important notes */}
-          <Card>
+          <Card className="rounded-2xl border-border/70 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Before you go</CardTitle>
+              <CardTitle className="text-base font-semibold">
+                Helpful reminders
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2.5 text-sm text-muted-foreground">
@@ -318,14 +343,6 @@ const AppointmentConfirmation = ({
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                   Bring any relevant medical records or prescriptions
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  Cancel or reschedule from your appointments page
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  A confirmation will be sent to your email
-                </li>
               </ul>
             </CardContent>
           </Card>
@@ -335,7 +352,7 @@ const AppointmentConfirmation = ({
             <Button
               onClick={handleConfirmBooking}
               disabled={isBusy}
-              className="w-full gap-2"
+              className="w-full gap-2 rounded-xl shadow-sm shadow-primary/15"
               size="lg"
             >
               {isPayingNow ? (
@@ -355,7 +372,7 @@ const AppointmentConfirmation = ({
               onClick={handlePayLater}
               disabled={isBusy}
               variant="outline"
-              className="w-full gap-2"
+              className="w-full gap-2 rounded-xl"
               size="lg"
             >
               {isPayingLater ? (

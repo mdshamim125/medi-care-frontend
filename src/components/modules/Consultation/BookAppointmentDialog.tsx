@@ -169,14 +169,6 @@ export default function BookAppointmentDialog({
                   Selected
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 rounded bg-blue-600" />
-                  Scheduled
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 rounded bg-lime-600" />
-                  In progress
-                </span>
-                <span className="inline-flex items-center gap-2">
                   <span className="h-3.5 w-3.5 rounded bg-orange-500" />
                   Booked
                 </span>
@@ -267,18 +259,6 @@ export default function BookAppointmentDialog({
                             selectedSchedule?.scheduleId ===
                             schedule.scheduleId;
                           const isBooked = schedule.isBooked;
-                          const statusLabel =
-                            schedule.appointmentStatus === "INPROGRESS"
-                              ? "In progress"
-                              : schedule.appointmentStatus === "SCHEDULED"
-                                ? "Scheduled"
-                                : "Booked";
-                          const statusClass =
-                            schedule.appointmentStatus === "SCHEDULED"
-                              ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
-                              : schedule.appointmentStatus === "INPROGRESS"
-                                ? "border-lime-600 bg-lime-600 text-white hover:bg-lime-700 hover:text-white"
-                                : "border-orange-500 bg-orange-500 text-white hover:bg-orange-600 hover:text-white";
 
                           return (
                             <Button
@@ -288,7 +268,7 @@ export default function BookAppointmentDialog({
                               disabled={isBooked}
                               aria-label={
                                 isBooked
-                                  ? `${startTime ? format(startTime, "h:mm a") : "Time slot"}, ${statusLabel.toLowerCase()}`
+                                  ? `${startTime ? format(startTime, "h:mm a") : "Time slot"}, booked`
                                   : undefined
                               }
                               onClick={() => setSelectedSchedule(schedule)}
@@ -302,7 +282,7 @@ export default function BookAppointmentDialog({
                                 disabled:opacity-100
                                 ${
                                   isBooked
-                                    ? `cursor-not-allowed ${statusClass}`
+                                    ? "cursor-not-allowed border-orange-500 bg-orange-500 text-white hover:bg-orange-600 hover:text-white"
                                     : isSelected
                                       ? "border-slate-700 bg-slate-700 text-white shadow-sm hover:bg-slate-800 hover:text-white"
                                       : "border-slate-300 bg-background text-foreground hover:border-slate-500 hover:bg-slate-50"
