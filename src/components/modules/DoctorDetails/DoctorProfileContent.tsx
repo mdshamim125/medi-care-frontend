@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import DoctorBookingButton from "@/components/modules/DoctorDetails/DoctorBookingButton";
 import { IDoctor } from "@/types/doctor.interface";
 import {
   Briefcase,
@@ -91,6 +92,9 @@ const DoctorProfileContent = ({ doctor }: DoctorProfileContentProps) => {
                 </div>
               </div>
 
+            </div>
+            <div className="w-full md:w-auto md:pb-1">
+              <DoctorBookingButton doctor={doctor} />
             </div>
           </div>
         </CardContent>
