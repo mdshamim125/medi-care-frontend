@@ -39,7 +39,7 @@ function PublicFooter() {
             </Link>
           </div>
 
-          <nav aria-label="Quick links">
+          <nav aria-label="Explore">
             <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-foreground">
               Explore
             </h2>
@@ -50,46 +50,31 @@ function PublicFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/consultation" className={footerLinkClass}>
+                  Consultation
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className={footerLinkClass}>
                   About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className={footerLinkClass}>
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className={footerLinkClass}>
-                  Contact
                 </Link>
               </li>
             </ul>
           </nav>
 
-          <nav aria-label="Support links">
+          <nav aria-label="Support">
             <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-foreground">
               Support
             </h2>
             <ul className="mt-5 space-y-3.5 text-sm">
               <li>
+                <Link href="/contact" className={footerLinkClass}>
+                  Contact Us
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className={footerLinkClass}>
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link href="/help" className={footerLinkClass}>
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className={footerLinkClass}>
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className={footerLinkClass}>
-                  Privacy Policy
+                  FAQs
                 </Link>
               </li>
             </ul>

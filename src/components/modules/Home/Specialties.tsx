@@ -1,95 +1,151 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { ISpecialty } from "@/types/specialities.interface";
 import {
-  BrainCircuit,
+  ArrowRight,
   CalendarCheck,
-  ClipboardList,
-  ShieldCheck,
+  Search,
+  Stethoscope,
 } from "lucide-react";
+import Link from "next/link";
 
-const steps = [
+interface SpecialtiesProps {
+  specialties: ISpecialty[];
+  totalCount: number;
+}
+
+const careSteps = [
   {
-    icon: ClipboardList,
-    title: "Tell us what you feel",
-    body: "Answer a 90-second symptom check in plain language — no medical jargon required.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "The AI ranks specialists",
-    body: "It weighs your history, outcomes, insurance, distance and availability against 1,200 verified doctors.",
+    icon: Search,
+    title: "Explore doctors",
+    description: "Browse profiles and find a provider whose specialty fits your needs.",
   },
   {
     icon: CalendarCheck,
-    title: "Book your best fit",
-    body: "See a fit score and the reasoning behind it, then confirm an appointment in a single tap.",
+    title: "Choose an appointment",
+    description: "Review available schedules and request a time that works for you.",
+  },
+  {
+    icon: Stethoscope,
+    title: "Keep care organized",
+    description: "Manage your appointments and follow-up details from your dashboard.",
   },
 ];
 
-const Specialities = () => {
-  return (
-    <section id="ai-matching" className="w-full bg-white py-20 lg:py-28">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-14 px-5 sm:px-8 lg:grid-cols-2 lg:gap-20">
-        <div className="order-2 lg:order-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">
-            How matching works
-          </p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            The right specialist, chosen by evidence — not by guesswork
-          </h2>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-slate-700">
-            Most patients see the wrong specialist first. Our matching engine
-            closes that gap by explaining every recommendation it makes.
-          </p>
+export default function Specialties({
+  specialties,
+  totalCount,
+}: SpecialtiesProps) {
+  const visibleSpecialties = specialties.slice(0, 8);
 
-          <ol className="mt-10 space-y-8">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <li key={step.title} className="flex gap-5">
-                  <span className="flex h-12 w-12 flex-none items-center justify-center rounded-2xl bg-teal-50 text-teal-600">
-                    <Icon className="h-5 w-5" />
+  return (
+    <section id="specialties" className="bg-muted/35 py-16 sm:py-20 lg:py-24">
+      <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+              Browse by specialty
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              Start with the care you need
+            </h2>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              Explore {totalCount} {totalCount === 1 ? "specialty" : "specialties"}{" "}
+              and find doctors who focus on the care you’re looking for.
+            </p>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            className="w-fit rounded-xl border-border bg-card"
+          >
+            <Link href="/consultation">
+              Browse all doctors
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+
+        {visibleSpecialties.length > 0 ? (
+          <ul className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+            {visibleSpecialties.map((specialty) => (
+              <li key={specialty.id}>
+                <Link
+                  href={`/consultation?specialties=${encodeURIComponent(specialty.title)}`}
+                  className="group flex h-full min-h-24 items-center gap-3 rounded-2xl border border-border/80 bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md sm:gap-4 sm:p-5"
+                >
+                  <Avatar className="h-11 w-11 rounded-xl bg-primary/5">
+                    <AvatarImage src={specialty.icon} alt="" />
+                    <AvatarFallback className="rounded-xl bg-primary/10 text-primary">
+                      <Stethoscope className="h-5 w-5" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-foreground">
+                      {specialty.title}
+                    </span>
+                    <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
+                      Find a doctor
+                      <ArrowRight className="h-3 w-3" />
+                    </span>
                   </span>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">
-                      <span className="mr-2 text-teal-500">0{index + 1}</span>
-                      {step.title}
-                    </h3>
-                    <p className="mt-1.5 max-w-md text-sm leading-relaxed text-slate-700">
-                      {step.body}
-                    </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-9 rounded-2xl border border-dashed border-border bg-card px-6 py-10 text-center">
+            <Stethoscope className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 font-semibold text-foreground">
+              Specialty listings will appear here
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You can still browse all available doctor profiles.
+            </p>
+          </div>
+        )}
+
+        <div
+          id="care-journey"
+          className="mt-16 border-t border-border pt-14 sm:mt-20 sm:pt-16"
+        >
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+              Simple from start to finish
+            </p>
+            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+              Your next step, made easier
+            </h2>
+          </div>
+          <ol className="mt-8 grid gap-4 md:grid-cols-3">
+            {careSteps.map((step, index) => {
+              const Icon = step.icon;
+
+              return (
+                <li
+                  key={step.title}
+                  className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="text-sm font-bold tabular-nums text-muted-foreground">
+                      0{index + 1}
+                    </span>
                   </div>
+                  <h3 className="mt-5 text-base font-bold text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {step.description}
+                  </p>
                 </li>
               );
             })}
           </ol>
-
-          <p className="mt-10 inline-flex items-center gap-2 rounded-xl bg-[#f7f5f0] px-4 py-3 text-sm text-slate-700">
-            <ShieldCheck className="h-4 w-4 flex-none text-teal-600" />
-            Every suggestion is reviewed against clinical guidelines by our
-            medical board.
-          </p>
-        </div>
-
-        <div className="order-1 lg:order-2">
-          <div className="relative overflow-hidden rounded-3xl border border-teal-100 bg-[#f7f5f0]">
-            <img
-              src="https://cdn.magicpatterns.com/patterns/generated-images/6214df44-755f-4a03-955f-fc4dc355f96e.jpg"
-              alt="A patient checking their doctor matches on a phone in a bright clinic waiting area"
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-teal-100 bg-white/95 p-4 backdrop-blur-sm sm:left-6 sm:right-auto sm:max-w-xs">
-              <p className="text-xs font-semibold uppercase tracking-wide text-teal-600">
-                Average outcome
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-900">
-                Patients matched by medi-care reach the correct specialist{" "}
-                <span className="font-bold">2.4× faster</span> than
-                self-referral.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
   );
-};
-
-export default Specialities;
+}

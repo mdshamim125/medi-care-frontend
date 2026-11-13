@@ -1,150 +1,191 @@
-import { ArrowRight, CalendarClock, PlayCircle, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { getInitials } from "@/lib/formatters";
+import { IDoctor } from "@/types/doctor.interface";
+import { ArrowRight, CalendarCheck, ShieldCheck, Star, Stethoscope } from "lucide-react";
+import Link from "next/link";
 
-const stats = [
-  { value: "1,200+", label: "Verified specialists" },
-  { value: "94%", label: "Match accuracy" },
-  { value: "<2 min", label: "Average time to match" },
-];
+interface HeroProps {
+  doctors: IDoctor[];
+  doctorCount: number;
+  specialtyCount: number;
+}
 
-const symptomPills = ["Chest tightness", "Shortness of breath", "Age 54"];
+export function Hero({ doctors, doctorCount, specialtyCount }: HeroProps) {
+  const featuredDoctors = doctors.slice(0, 2);
 
-export function Hero() {
   return (
-    <section id="top" className="relative overflow-hidden bg-[#f7f5f0]">
-      <div className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-teal-100/70 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-52 -left-40 h-[420px] w-[420px] rounded-full bg-teal-50 blur-3xl" />
+    <section className="relative isolate overflow-hidden bg-background">
+      <div className="pointer-events-none absolute -right-36 -top-40 -z-10 h-[520px] w-[520px] rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-52 -left-40 -z-10 h-[420px] w-[420px] rounded-full bg-accent blur-3xl" />
 
-      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-14 px-5 pb-20 pt-14 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pb-28 lg:pt-20">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-5 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pb-24 lg:pt-20">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-teal-700">
-            <Sparkles className="h-3.5 w-3.5" />
-            AI-driven doctor suggestion
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary shadow-sm">
+            <Stethoscope className="h-3.5 w-3.5" />
+            Care that connects
+          </div>
 
-          <h1 className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Describe your symptoms.
+          <h1 className="mt-6 max-w-2xl text-4xl font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            Find care with
             <br />
-            <span className="text-teal-600">We find the right doctor.</span>
+            <span className="text-primary">a clearer next step.</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-700 sm:text-lg">
-            medi-care reads your symptoms, history, insurance and location, then ranks the specialists most likely to resolve your case — with a clear reason behind every suggestion.
+          <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Explore doctor profiles, compare specialties, and book an
+            appointment—all in one place.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href="#ai-matching"
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(11,43,51,0.04),0_12px_32px_-12px_rgba(11,43,51,0.16)] transition-colors hover:bg-teal-700"
+            <Button asChild size="lg" className="h-12 rounded-xl px-6 font-semibold shadow-md shadow-primary/15">
+              <Link href="/consultation">
+                Explore doctors
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 rounded-xl border-border/80 bg-card px-6 font-semibold"
             >
-              Get my doctor match
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </a>
-            <a
-              href="#doctors"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 transition-colors hover:border-teal-300 hover:bg-teal-50"
-            >
-              <PlayCircle className="h-4 w-4 text-teal-600" />
-              See how it works
-            </a>
+              <a href="#care-journey">
+                <CalendarCheck className="h-4 w-4 text-primary" />
+                How it works
+              </a>
+            </Button>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-600">
+          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-teal-600" />
-              HIPAA-compliant & clinician reviewed
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Clear doctor profiles
             </span>
             <span className="inline-flex items-center gap-2">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              4.9 average from 18,000+ patients
+              <CalendarCheck className="h-4 w-4 text-primary" />
+              Convenient online booking
             </span>
           </div>
 
-          <dl className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-teal-100 pt-7">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dd className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{stat.value}</dd>
-                <dt className="mt-1 block text-xs font-medium leading-snug text-slate-600">{stat.label}</dt>
-              </div>
-            ))}
+          <dl className="mt-10 grid max-w-lg grid-cols-2 gap-6 border-t border-border pt-7">
+            <div>
+              <dd className="text-3xl font-extrabold tracking-tight text-foreground">
+                {doctorCount}
+              </dd>
+              <dt className="mt-1 text-sm font-medium text-muted-foreground">
+                {doctorCount === 1 ? "Doctor in directory" : "Doctors in directory"}
+              </dt>
+            </div>
+            <div>
+              <dd className="text-3xl font-extrabold tracking-tight text-foreground">
+                {specialtyCount}
+              </dd>
+              <dt className="mt-1 text-sm font-medium text-muted-foreground">
+                {specialtyCount === 1 ? "Care specialty" : "Care specialties"}
+              </dt>
+            </div>
           </dl>
         </div>
 
-        <div>
-          <div className="rounded-3xl border border-teal-100 bg-white p-5 shadow-[0_2px_4px_rgba(11,43,51,0.05),0_24px_48px_-16px_rgba(11,43,51,0.22)] sm:p-6">
-            <div className="flex items-center justify-between gap-3 border-b border-teal-50 pb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-sm font-bold text-slate-900">Doctor Match AI</p>
-                  <p className="text-xs text-slate-600">Live suggestion engine</p>
-                </div>
+        <div className="relative">
+          <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-primary/5 blur-xl" />
+          <div className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-[0_24px_70px_-32px_rgba(15,118,110,0.28)]">
+            <div className="flex items-center justify-between gap-4 border-b border-border/70 bg-muted/30 px-5 py-4 sm:px-6">
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  Meet our doctors
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  From the Medi-Care directory
+                </p>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-semibold text-teal-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-                Analyzing
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                {doctorCount} listed
               </span>
             </div>
 
-            <div className="pt-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Patient input</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {symptomPills.map((symptom) => (
-                  <span key={symptom} className="rounded-full border border-teal-100 bg-[#f7f5f0] px-3 py-1.5 text-xs font-medium text-slate-700">
-                    {symptom}
-                  </span>
-                ))}
-              </div>
+            <div className="space-y-3 p-4 sm:p-5">
+              {featuredDoctors.length > 0 ? (
+                featuredDoctors.map((doctor) => {
+                  const profilePhoto =
+                    typeof doctor.profilePhoto === "string"
+                      ? doctor.profilePhoto
+                      : undefined;
+                  const primarySpecialty =
+                    doctor.doctorSpecialties?.[0]?.specialities?.title;
+                  const rating = Number(doctor.averageRating ?? 0);
+
+                  return (
+                    <article
+                      key={doctor.id ?? doctor.email}
+                      className="rounded-2xl border border-border/70 bg-background p-4 transition-colors hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12 rounded-xl ring-1 ring-border">
+                          <AvatarImage
+                            src={profilePhoto}
+                            alt={doctor.name}
+                          />
+                          <AvatarFallback className="rounded-xl bg-primary/10 font-semibold text-primary">
+                            {getInitials(doctor.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-foreground">
+                            {doctor.name}
+                          </p>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {doctor.designation}
+                          </p>
+                        </div>
+                        {rating > 0 && (
+                          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-foreground">
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            {rating.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="truncate text-xs text-muted-foreground">
+                          {primarySpecialty || "General consultation"}
+                        </span>
+                        <Link
+                          href={
+                            doctor.id
+                              ? `/consultation/doctor/${doctor.id}`
+                              : "/consultation"
+                          }
+                          className="shrink-0 text-xs font-semibold text-primary hover:underline"
+                        >
+                          View profile
+                        </Link>
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border px-5 py-10 text-center">
+                  <Stethoscope className="mx-auto h-7 w-7 text-muted-foreground" />
+                  <p className="mt-3 text-sm font-semibold text-foreground">
+                    Browse the doctor directory
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Doctor profiles will appear here when available.
+                  </p>
+                </div>
+              )}
             </div>
 
-            <ol className="mt-6 space-y-2.5">
-              {[
-                "Reading symptoms & history",
-                "Ranking 1,200 specialists",
-                "Best-fit doctors ready",
-              ].map((step, index) => (
-                <li key={step} className="flex items-center gap-3">
-                  <span className={`flex h-6 w-6 flex-none items-center justify-center rounded-full border ${index < 2 ? "border-teal-500 bg-teal-500 text-white" : "border-teal-100 bg-white text-teal-200"}`}>
-                    {index < 2 ? <Sparkles className="h-3.5 w-3.5" /> : <Star className="h-3.5 w-3.5" />}
-                  </span>
-                  <span className={`text-sm ${index < 2 ? "font-semibold text-slate-900" : "text-slate-600"}`}>{step}</span>
-                </li>
-              ))}
-            </ol>
-
-            <div className="mt-6 rounded-2xl bg-[#f7f5f0] p-4">
-              <div className="space-y-3">
-                {[
-                  { name: "Dr. Anaya Raghunathan", detail: "Cardiologist · Northline Heart Institute", fit: "96% fit" },
-                  { name: "Dr. Marcus Ellison", detail: "Neurologist · St. Bridget Medical Center", fit: "92% fit" },
-                ].map((doctor) => (
-                  <div key={doctor.name} className="rounded-xl border border-teal-100 bg-white p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-lg font-bold text-teal-700">
-                        {doctor.name.split(" ")[1]?.[0] ?? "D"}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-slate-900">{doctor.name}</p>
-                        <p className="truncate text-xs text-slate-600">{doctor.detail}</p>
-                      </div>
-                      <span className="flex-none rounded-lg bg-teal-600 px-2 py-1 text-[11px] font-bold text-white">
-                        {doctor.fit}
-                      </span>
-                    </div>
-                    <div className="mt-2.5 flex items-center gap-3 text-[11px] text-slate-600">
-                      <span className="inline-flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                        4.9
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarClock className="h-3 w-3" />
-                        Tomorrow, 9:30 AM
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="border-t border-border/70 px-5 py-4 sm:px-6">
+              <Link
+                href="/consultation"
+                className="group inline-flex items-center gap-2 text-sm font-semibold text-primary"
+              >
+                View all doctors
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </div>
           </div>
         </div>

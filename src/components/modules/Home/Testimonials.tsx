@@ -1,91 +1,123 @@
-import { Quote, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getInitials } from "@/lib/formatters";
+import { IReview } from "@/types/review.interface";
+import { ArrowRight, Quote, Star } from "lucide-react";
+import Link from "next/link";
 
-const reviews = [
-  {
-    id: "r1",
-    quote:
-      "I had been bounced between three clinics for six months. medi-care suggested a neurologist on the first try and explained exactly why. I finally have a diagnosis.",
-    name: "Priya Nandakumar",
-    detail: "Matched with a neurologist · Austin, TX",
-    initials: "PN",
-    rating: 5,
-  },
-  {
-    id: "r2",
-    quote:
-      "The fit score sounded like marketing until I read the reasoning — my history, my insurance, my commute. Booked the same evening and was seen in two days.",
-    name: "David Okonkwo",
-    detail: "Matched with a cardiologist · Chicago, IL",
-    initials: "DO",
-    rating: 5,
-  },
-  {
-    id: "r3",
-    quote:
-      "As a caregiver for my mother, this removed the hardest part: knowing which specialist to even call. The whole process took under five minutes.",
-    name: "Elena Ferrara",
-    detail: "Matched with an endocrinologist · Portland, OR",
-    initials: "EF",
-    rating: 4,
-  },
-];
+interface TestimonialsProps {
+  reviews: IReview[];
+  totalCount: number;
+  loadFailed: boolean;
+}
 
-const Testimonials = () => {
+export default function Testimonials({
+  reviews,
+  totalCount,
+  loadFailed,
+}: TestimonialsProps) {
+  const visibleReviews = reviews
+    .filter((review) => review.comment?.trim() && review.rating > 0)
+    .slice(0, 3);
+
   return (
-    <section id="reviews" className="w-full bg-white py-20 lg:py-28">
+    <section id="reviews" className="bg-muted/35 py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">
-            Patient reviews
-          </p>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            18,000+ patients matched, and counting
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-700">
-            Verified reviews from patients who booked their care through
-            medi-care.
-          </p>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+              Patient reviews
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              Feedback from real visits
+            </h2>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              {totalCount > 0
+                ? `Read ${totalCount} ${totalCount === 1 ? "patient review" : "patient reviews"} shared through Medi-Care.`
+                : "Patient feedback will appear here as reviews are shared."}
+            </p>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            className="w-fit rounded-xl border-border bg-card"
+          >
+            <Link href="/consultation">
+              Find a doctor
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
-        <ul className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {reviews.map((review) => (
-            <li key={review.id} className="h-full">
-              <figure className="flex h-full flex-col rounded-3xl border border-teal-100 bg-[#f7f5f0] p-6">
-                <Quote className="h-6 w-6 text-teal-300" />
-                <div
-                  className="mt-4 flex items-center gap-0.5"
-                  aria-label={`${review.rating} out of 5 stars`}
-                >
-                  {[0, 1, 2, 3, 4].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-4 w-4 ${star < review.rating ? "fill-amber-400 text-amber-400" : "text-teal-200"}`}
-                    />
-                  ))}
-                </div>
-                <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-slate-700">
-                  “{review.quote}”
-                </blockquote>
-                <figcaption className="mt-6 flex items-center gap-3 border-t border-teal-100 pt-5">
-                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">
-                    {review.initials}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-bold text-slate-900">
-                      {review.name}
-                    </span>
-                    <span className="block truncate text-xs text-slate-600">
-                      {review.detail}
-                    </span>
-                  </span>
-                </figcaption>
-              </figure>
-            </li>
-          ))}
-        </ul>
+        {visibleReviews.length > 0 ? (
+          <ul className="mt-9 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {visibleReviews.map((review) => {
+              const patientName = "Medi-Care patient";
+              const rating = Math.min(5, Math.max(0, Math.round(review.rating)));
+
+              return (
+                <li key={review.id} className="h-full">
+                  <figure className="flex h-full flex-col rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <Quote className="h-5 w-5 text-primary/50" />
+                      <div
+                        role="img"
+                        className="flex items-center gap-0.5"
+                        aria-label={`${rating} out of 5 stars`}
+                      >
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            aria-hidden="true"
+                            className={`h-4 w-4 ${
+                              star <= rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-muted"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <blockquote className="mt-4 flex-1 text-sm leading-6 text-foreground">
+                      “{review.comment}”
+                    </blockquote>
+                    <figcaption className="mt-6 flex items-center gap-3 border-t border-border pt-4">
+                      <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {getInitials(patientName)}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-bold text-foreground">
+                          {patientName}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          Patient review
+                        </span>
+                      </span>
+                    </figcaption>
+                  </figure>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div
+            className="mt-9 rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center"
+            role={loadFailed ? "alert" : undefined}
+          >
+            <Star className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 font-semibold text-foreground">
+              {loadFailed
+                ? "Patient reviews are temporarily unavailable."
+                : "There are no patient reviews to display yet."}
+            </p>
+            {!loadFailed && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                You can explore doctor profiles and available appointments in
+                the meantime.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
-};
-
-export default Testimonials;
+}

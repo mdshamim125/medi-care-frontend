@@ -18,11 +18,11 @@ import PublicNavLinks from "./PublicNavLinks";
 
 const PublicNavbar = async () => {
   const navItems = [
+    { href: "/", label: "Home" },
     { href: "/consultation", label: "Consultation" },
-    { href: "#", label: "About Us" },
-    { href: "#", label: "Contact Us" },
-    { href: "#", label: "Diagnostics" },
-    { href: "#", label: "NGOs" },
+    { href: "/about", label: "About Us" },
+    { href: "/contact", label: "Contact Us" },
+    { href: "/faq", label: "FAQs" },
   ];
 
   const accessToken = await getCookie("accessToken");
