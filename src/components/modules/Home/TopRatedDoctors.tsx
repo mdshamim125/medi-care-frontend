@@ -1,150 +1,189 @@
-import { ArrowRight, CalendarClock, MapPin, Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { getInitials } from "@/lib/formatters";
+import { IDoctor } from "@/types/doctor.interface";
+import { ArrowRight, MapPin, Star, Stethoscope } from "lucide-react";
+import Link from "next/link";
 
-const doctors = [
-  {
-    id: "d1",
-    name: "Dr. Anaya Raghunathan",
-    specialty: "Cardiologist",
-    hospital: "Northline Heart Institute",
-    rating: 4.9,
-    reviews: 412,
-    nextAvailable: "Tomorrow, 9:30 AM",
-    match: 96,
-    tags: ["Chest pain", "Hypertension"],
-    photo:
-      "https://cdn.magicpatterns.com/patterns/generated-images/27d14396-48e5-42e0-882d-bc23f9e894cc.jpg",
-  },
-  {
-    id: "d2",
-    name: "Dr. Marcus Ellison",
-    specialty: "Neurologist",
-    hospital: "St. Bridget Medical Center",
-    rating: 4.8,
-    reviews: 328,
-    nextAvailable: "Today, 4:15 PM",
-    match: 92,
-    tags: ["Migraine", "Epilepsy"],
-    photo:
-      "https://cdn.magicpatterns.com/patterns/generated-images/2b14a7db-ed46-408b-878a-a519d487392c.jpg",
-  },
-  {
-    id: "d3",
-    name: "Dr. Mei-Lin Chow",
-    specialty: "Endocrinologist",
-    hospital: "Riverbend Clinic",
-    rating: 4.9,
-    reviews: 276,
-    nextAvailable: "Fri, 11:00 AM",
-    match: 90,
-    tags: ["Diabetes", "Thyroid"],
-    photo:
-      "https://cdn.magicpatterns.com/patterns/generated-images/f895679c-2f9c-4a35-b58b-8f102b98e9ab.jpg",
-  },
-  {
-    id: "d4",
-    name: "Dr. Julian Vance",
-    specialty: "Orthopedic Surgeon",
-    hospital: "Cedar Park Ortho",
-    rating: 4.7,
-    reviews: 519,
-    nextAvailable: "Mon, 8:00 AM",
-    match: 88,
-    tags: ["Knee & hip", "Sports injury"],
-    photo:
-      "https://cdn.magicpatterns.com/patterns/generated-images/0ce2e8e6-a9c7-4937-aa1d-780ff655f33e.jpg",
-  },
-];
+interface TopRatedDoctorsProps {
+  doctors: IDoctor[];
+  totalCount: number;
+  loadFailed: boolean;
+}
 
-const TopRatedDoctors = () => {
+const formatFee = (fee: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(fee);
+
+export default function TopRatedDoctors({
+  doctors,
+  totalCount,
+  loadFailed,
+}: TopRatedDoctorsProps) {
+  const featuredDoctors = doctors.slice(0, 4);
+
   return (
-    <section id="doctors" className="w-full bg-[#f7f5f0] py-20 lg:py-28">
+    <section id="doctors" className="bg-background py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-600">
-              Top doctors
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+              Meet the care team
             </p>
-            <h2 className="mt-3 max-w-xl text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              Highest-rated specialists on medi-care this month
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              Doctors in our directory
             </h2>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              {totalCount > 0
+                ? `Explore ${totalCount} ${totalCount === 1 ? "doctor profile" : "doctor profiles"} and learn more about their experience and specialties.`
+                : "Explore doctor profiles and learn more about their experience and specialties."}
+            </p>
           </div>
-          <a
-            href="#doctors"
-            className="group inline-flex flex-none items-center gap-2 text-sm font-semibold text-teal-700 transition-colors hover:text-teal-800"
+          <Button
+            asChild
+            variant="outline"
+            className="w-fit rounded-xl border-border bg-card"
           >
-            Browse all 1,200 specialists
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </a>
+            <Link href="/consultation">
+              Browse all doctors
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
-        <ul className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {doctors.map((doctor) => (
-            <li key={doctor.id}>
-              <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-teal-100 bg-white shadow-[0_1px_2px_rgba(11,43,51,0.04),0_12px_32px_-12px_rgba(11,43,51,0.16)] transition-shadow duration-300 hover:shadow-[0_2px_4px_rgba(11,43,51,0.05),0_24px_48px_-16px_rgba(11,43,51,0.22)]">
-                <div className="relative aspect-[4/3] overflow-hidden bg-teal-50">
-                  <img
-                    src={doctor.photo}
-                    alt={`Portrait of ${doctor.name}`}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                  />
-                  <span className="absolute left-3 top-3 rounded-lg bg-white/95 px-2.5 py-1 text-[11px] font-bold text-teal-700 backdrop-blur-sm">
-                    {doctor.match}% fit
-                  </span>
-                </div>
+        {featuredDoctors.length > 0 ? (
+          <ul className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredDoctors.map((doctor) => {
+              const profilePhoto =
+                typeof doctor.profilePhoto === "string"
+                  ? doctor.profilePhoto
+                  : undefined;
+              const specialties =
+                doctor.doctorSpecialties
+                  ?.map((item) => item.specialities?.title)
+                  .filter((title): title is string => Boolean(title)) ?? [];
+              const rating = Number(doctor.averageRating ?? 0);
 
-                <div className="flex flex-1 flex-col p-5">
-                  <h3 className="text-base font-bold leading-snug text-slate-900">
-                    {doctor.name}
-                  </h3>
-                  <p className="mt-1 text-sm font-medium text-teal-700">
-                    {doctor.specialty}
-                  </p>
+              return (
+                <li key={doctor.id ?? doctor.email}>
+                  <article className="flex h-full flex-col rounded-2xl border border-border/80 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-14 w-14 rounded-2xl ring-1 ring-border">
+                        <AvatarImage src={profilePhoto} alt={doctor.name} />
+                        <AvatarFallback className="rounded-2xl bg-primary/10 font-semibold text-primary">
+                          {getInitials(doctor.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <h3 className="truncate text-base font-bold text-foreground">
+                          {doctor.name}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted-foreground">
+                          {doctor.designation}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="mt-3 space-y-1.5 text-xs text-slate-600">
-                    <p className="flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 flex-none" />
-                      <span className="truncate">{doctor.hospital}</span>
-                    </p>
-                    <p className="flex items-center gap-1.5">
-                      <CalendarClock className="h-3.5 w-3.5 flex-none" />
-                      {doctor.nextAvailable}
-                    </p>
-                  </div>
+                    <div className="mt-5 flex min-h-7 flex-wrap gap-1.5">
+                      {specialties.length > 0 ? (
+                        specialties.slice(0, 2).map((specialty) => (
+                          <span
+                            key={specialty}
+                            className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary"
+                          >
+                            {specialty}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Stethoscope className="h-3.5 w-3.5" />
+                          General consultation
+                        </span>
+                      )}
+                    </div>
 
-                  <ul className="mt-4 flex flex-wrap gap-1.5">
-                    {doctor.tags.map((tag) => (
-                      <li
-                        key={tag}
-                        className="rounded-full bg-[#f7f5f0] px-2.5 py-1 text-[11px] font-medium text-slate-700"
-                      >
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
+                    <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                      {doctor.currentWorkingPlace && (
+                        <p className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 shrink-0 text-primary" />
+                          <span className="truncate">
+                            {doctor.currentWorkingPlace}
+                          </span>
+                        </p>
+                      )}
+                      {typeof doctor.experience === "number" && (
+                        <p className="text-xs">
+                          {doctor.experience}{" "}
+                          {doctor.experience === 1 ? "year" : "years"} of
+                          experience
+                        </p>
+                      )}
+                    </div>
 
-                  <div className="mt-auto flex items-center justify-between gap-3 border-t border-teal-50 pt-4">
-                    <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      {doctor.rating}
-                      <span className="font-normal text-slate-600">
-                        ({doctor.reviews})
-                      </span>
-                    </p>
-                    <button
-                      type="button"
-                      className="rounded-lg bg-teal-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-teal-700"
+                    <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          Consultation fee
+                        </p>
+                        <p className="mt-0.5 font-bold text-foreground">
+                          {formatFee(doctor.appointmentFee)}
+                        </p>
+                      </div>
+                      {rating > 0 ? (
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+                          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                          {rating.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          New profile
+                        </span>
+                      )}
+                    </div>
+
+                    <Button
+                      asChild
+                      className="mt-4 w-full rounded-xl"
+                      variant="outline"
                     >
-                      Book visit
-                    </button>
-                  </div>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
+                      <Link
+                        href={
+                          doctor.id
+                            ? `/consultation/doctor/${doctor.id}`
+                            : "/consultation"
+                        }
+                      >
+                        View profile
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div
+            className="mt-9 rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center"
+            role={loadFailed ? "alert" : undefined}
+          >
+            <Stethoscope className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 font-semibold text-foreground">
+              {loadFailed
+                ? "Doctor profiles are temporarily unavailable."
+                : "No doctor profiles are available yet."}
+            </p>
+            {!loadFailed && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Please check back soon or browse the directory.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
-};
-
-export default TopRatedDoctors;
+}

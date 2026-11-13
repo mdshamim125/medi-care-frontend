@@ -12,9 +12,10 @@ export async function getReviews(queryString?: string) {
     const result = await response.json();
 
     return {
-      success: true,
-      data: result.data,
+      success: response.ok && result.success === true,
+      data: result.data ?? [],
       meta: result.meta,
+      message: result.message,
     };
   } catch (error: any) {
     console.error("Get reviews error:", error);
